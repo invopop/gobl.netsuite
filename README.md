@@ -15,12 +15,51 @@ Early development. The REST client and a `probe` command for exploring account d
 
 ## NetSuite Setup
 
-The client uses the [REST web services](https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/chapter_1540391670.html) hosted at `https://<account>.suitetalk.api.netsuite.com`. In the NetSuite account:
+The client uses the [REST web services](https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/chapter_1540391670.html) hosted at `https://<account>.suitetalk.api.netsuite.com`, authenticated with Token-Based Authentication (TBA). Five values are needed:
 
-1. Enable **Setup > Company > Enable Features > SuiteCloud**: _REST Web Services_ and _Token-Based Authentication_.
-2. Create an **Integration** record (Setup > Integration > Manage Integrations) with _Token-Based Authentication_ checked and _REST Web Services_ in scope. Note the consumer key and secret.
-3. Use a role with the _REST Web Services_ and _Log in using Access Tokens_ permissions, plus view access to Transactions (Invoice), Customers and Subsidiaries.
-4. Create an **Access Token** (Setup > Users/Roles > Access Tokens) for the integration, user and role. Note the token ID and secret.
+| Variable                   | Where it comes from                                                    |
+| -------------------------- | ---------------------------------------------------------------------- |
+| `NETSUITE_ACCOUNT_ID`      | Setup > Company > Company Information, e.g. `1234567` or `1234567_SB1` |
+| `NETSUITE_CONSUMER_KEY`    | Integration record (step 2)                                            |
+| `NETSUITE_CONSUMER_SECRET` | Integration record (step 2)                                            |
+| `NETSUITE_TOKEN_ID`        | Access token (step 3)                                                  |
+| `NETSUITE_TOKEN_SECRET`    | Access token (step 3)                                                  |
+
+The secrets are only displayed once, when the record is saved. If one is lost, use _Reset Credentials_ on the integration, or revoke the token and create a new one.
+
+### 1. Enable features
+
+**Setup > Company > Enable Features > SuiteCloud**, then check:
+
+- _SuiteTalk (Web Services)_: **REST Web Services**
+- _Manage Authentication_: **Token-Based Authentication**
+
+### 2. Create an integration record
+
+**Setup > Integration > Manage Integrations > New**:
+
+- Name it (e.g. "Invopop") and set the state to _Enabled_.
+- On the _Authentication_ tab, check **Token-Based Authentication**. _TBA: Authorization Flow_ and _Authorization Code Grant_ are not required.
+- Save, and copy the **Consumer Key** and **Consumer Secret** shown at the bottom of the page.
+
+### 3. Create an access token
+
+**For testing in your own account**, the quickest option is a token for your own user with the Administrator role. NetSuite does not offer the Administrator role in _Setup > Users/Roles > Access Tokens > New_, so instead:
+
+1. Log in with the Administrator role.
+2. On the home dashboard, open **Manage Access Tokens** from the _Settings_ portlet (add the portlet with _Personalize Dashboard_ if missing).
+3. Click **New My Access Token**, select the integration from step 2, and save.
+4. Copy the **Token ID** and **Token Secret**.
+
+An Administrator token has full access to the account, so revoke it once testing is complete.
+
+**For production use**, create a dedicated role (Setup > Users/Roles > Manage Roles > New) with only the permissions required:
+
+- _Setup_: Log in using Access Tokens, REST Web Services
+- _Transactions_: Invoice (View), Find Transaction (View, needed for SuiteQL)
+- _Lists_: Customers, Subsidiaries, Items (View)
+
+Assign the role to the integration user (Lists > Employees > Access > Roles), then create the token in **Setup > Users/Roles > Access Tokens > New**, selecting the integration, user and role.
 
 > Token-Based Authentication (TBA) can't be used by new integrations from NetSuite 2027.1, and support is planned to end in 2028.2. OAuth 2.0 support will be added.
 
