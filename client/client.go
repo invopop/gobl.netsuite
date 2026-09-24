@@ -85,6 +85,32 @@ func (c *Client) GetRecord(ctx context.Context, recordType, id string, expand bo
 	return c.Get(ctx, p, q, out)
 }
 
+// CreateRecord creates a record of the given type from the body, which is
+// encoded as JSON, and returns the internal ID of the new record.
+func (c *Client) CreateRecord(ctx context.Context, recordType string, body any) (string, error) {
+	data, err := json.Marshal(body)
+	if err != nil {
+		return "", err
+	}
+	p := fmt.Sprintf("%s/%s", recordPath, url.PathEscape(recordType))
+	req, err := c.newRequest(ctx, http.MethodPost, p, nil, bytes.NewReader(data))
+	if err != nil {
+		return "", err
+	}
+	resp, err := c.send(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close() //nolint:errcheck
+	// NetSuite responds with no content, and the location of the new record.
+	loc := resp.Header.Get("Location")
+	id := loc[strings.LastIndex(loc, "/")+1:]
+	if id == "" {
+		return "", fmt.Errorf("creating %s: no record location in response", recordType)
+	}
+	return id, nil
+}
+
 // RecordSchema fetches the JSON Schema for a record type from the metadata
 // catalog, decoding it into out. The schema is specific to the account, so
 // includes any custom fields and reflects the features enabled.
@@ -159,19 +185,34 @@ func (c *Client) newRequest(ctx context.Context, method, path string, query url.
 	return req, nil
 }
 
-func (c *Client) do(req *http.Request, out any) error {
+// send performs the request, returning an error for error responses. The
+// caller must close the response body.
+func (c *Client) send(req *http.Request) (*http.Response, error) {
 	resp, err := c.http.Do(req)
 	if err != nil {
-		return fmt.Errorf("%s %s: %w", req.Method, req.URL.Path, err)
+		return nil, fmt.Errorf("%s %s: %w", req.Method, req.URL.Path, err)
+	}
+	if resp.StatusCode >= http.StatusBadRequest {
+		defer resp.Body.Close() //nolint:errcheck
+		data, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("reading response: %w", err)
+		}
+		return nil, newError(resp, data)
+	}
+	return resp, nil
+}
+
+func (c *Client) do(req *http.Request, out any) error {
+	resp, err := c.send(req)
+	if err != nil {
+		return err
 	}
 	defer resp.Body.Close() //nolint:errcheck
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("reading response: %w", err)
-	}
-	if resp.StatusCode >= http.StatusBadRequest {
-		return newError(resp, data)
 	}
 	if out == nil || len(data) == 0 {
 		return nil

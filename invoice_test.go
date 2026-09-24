@@ -7,6 +7,7 @@ import (
 	"github.com/invopop/gobl"
 	goblnetsuite "github.com/invopop/gobl.netsuite"
 	"github.com/invopop/gobl/currency"
+	"github.com/invopop/gobl/num"
 	"github.com/invopop/gobl/tax"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -32,6 +33,15 @@ func modify(t *testing.T, raw *json.RawMessage, fn func(m map[string]any)) {
 // lines returns the item lines of a decoded invoice record.
 func lines(m map[string]any) []any {
 	return m["item"].(map[string]any)["items"].([]any)
+}
+
+func addAmounts(t *testing.T, a, b string) string {
+	t.Helper()
+	x, err := num.AmountFromString(a)
+	require.NoError(t, err)
+	y, err := num.AmountFromString(b)
+	require.NoError(t, err)
+	return x.Add(y).String()
 }
 
 func calculate(t *testing.T, res *goblnetsuite.Result) {
@@ -209,20 +219,66 @@ func TestFromInvoiceLineTypes(t *testing.T) {
 		sub["amount"] = 3000
 		desc := typed("Description")
 		desc["description"] = "Delivered in September"
+		markup := typed("Markup")
+		markup["amount"] = 300
 		disc := typed("Discount")
-		disc["amount"] = -300
-		m["item"].(map[string]any)["items"] = []any{base, sub, desc, disc}
+		disc["amount"] = -50
+		m["item"].(map[string]any)["items"] = []any{base, sub, desc, markup, disc}
 	})
 
 	res, err := goblnetsuite.FromInvoice(b)
 	require.NoError(t, err)
 	assert.Len(t, res.Invoice.Lines, 1)
 	assert.Len(t, res.SourceLines, 1)
-	require.Len(t, res.Unmapped, 2)
+	assert.Empty(t, res.Invoice.Discounts)
+	require.Len(t, res.Unmapped, 3)
 	assert.Equal(t, "invoice.item.items[2]", res.Unmapped[0].Path)
 	assert.Equal(t, "description line not converted", res.Unmapped[0].Message)
 	assert.Equal(t, "invoice.item.items[3]", res.Unmapped[1].Path)
-	assert.Equal(t, `unsupported item type "Discount"`, res.Unmapped[1].Message)
+	assert.Equal(t, `unsupported item type "Markup"`, res.Unmapped[1].Message)
+	assert.Equal(t, "invoice.item.items[4]", res.Unmapped[2].Path)
+	assert.Equal(t, "discount line without a tax code not supported", res.Unmapped[2].Message)
+}
+
+func TestFromInvoiceDiscounts(t *testing.T) {
+	t.Run("line discount with a different tax code", func(t *testing.T) {
+		b := loadBundle(t, "examples/netsuite/invoice_line_discount.json")
+		b.TaxCodes["7"] = json.RawMessage(`{"id":"7","rate":10.0,"taxType":{"id":"1","refName":"VAT"}}`)
+		modify(t, &b.Invoice, func(m map[string]any) {
+			disc := lines(m)[1].(map[string]any)
+			disc["taxCode"] = map[string]any{"id": "7"}
+			disc["taxRate1"] = 10
+		})
+		res, err := goblnetsuite.FromInvoice(b)
+		require.NoError(t, err)
+		assert.Empty(t, res.Invoice.Lines[0].Discounts)
+		require.Len(t, res.Invoice.Discounts, 1)
+		d := res.Invoice.Discounts[0]
+		assert.Equal(t, "333.33", d.Amount.String())
+		assert.Equal(t, "10%", d.Taxes[0].Percent.String())
+	})
+
+	t.Run("header discount shared between tax codes", func(t *testing.T) {
+		b := loadBundle(t, "examples/netsuite/invoice_mixed_rates.json")
+		modify(t, &b.Invoice, func(m map[string]any) {
+			m["discountItem"] = map[string]any{"id": "17", "refName": "Discount"}
+			m["discountTotal"] = -100
+		})
+		res, err := goblnetsuite.FromInvoice(b)
+		require.NoError(t, err)
+		// One discount per tax code used by the lines, adding up exactly.
+		require.Len(t, res.Invoice.Discounts, 5)
+		amounts := make([]string, len(res.Invoice.Discounts))
+		sum := "0.00"
+		for i, d := range res.Invoice.Discounts {
+			assert.Equal(t, "Discount", d.Reason)
+			amounts[i] = d.Amount.String()
+			sum = addAmounts(t, sum, amounts[i])
+		}
+		// Bases: 950.00, 99.99, 35.88, 250.00 and 240.00 of 1575.87.
+		assert.Equal(t, []string{"60.28", "6.35", "2.28", "15.86", "15.23"}, amounts)
+		assert.Equal(t, "100.00", sum)
+	})
 }
 
 func TestFromInvoiceUnmapped(t *testing.T) {
@@ -230,7 +286,7 @@ func TestFromInvoiceUnmapped(t *testing.T) {
 	modify(t, &b.Invoice, func(m map[string]any) {
 		m["custbody_project"] = map[string]any{"id": "7", "refName": "Alpha"}
 		m["custbody_empty"] = ""
-		m["discountTotal"] = -100
+		m["shippingCost"] = 12.5
 		lines(m)[0].(map[string]any)["custcol_cn_code"] = "8471"
 	})
 
@@ -241,7 +297,7 @@ func TestFromInvoiceUnmapped(t *testing.T) {
 		paths[i] = n.Path
 	}
 	assert.ElementsMatch(t, []string{
-		"invoice.discountTotal",
+		"invoice.shippingCost",
 		"invoice.custbody_project",
 		"source_lines[0].custcol_cn_code",
 	}, paths)

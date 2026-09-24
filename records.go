@@ -47,7 +47,10 @@ type Invoice struct {
 	BillingAddress *Address      `json:"billingAddress,omitempty"`
 	Item           *InvoiceItems `json:"item,omitempty"`
 
+	// Subtotal is the sum of the lines, including discount lines, but
+	// before the header discount in DiscountTotal (a negative amount).
 	Subtotal      json.Number `json:"subtotal,omitempty"`
+	DiscountItem  *Ref        `json:"discountItem,omitempty"`
 	DiscountTotal json.Number `json:"discountTotal,omitempty"`
 	ShippingCost  json.Number `json:"shippingCost,omitempty"`
 	TaxTotal      json.Number `json:"taxTotal,omitempty"`

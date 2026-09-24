@@ -1,0 +1,585 @@
+{
+  "currencies": {
+    "1": {
+      "currencyPrecision": 2,
+      "displaySymbol": "€",
+      "exchangeRate": 1,
+      "formatSample": "€1.234,56",
+      "id": "1",
+      "isBaseCurrency": true,
+      "isInactive": false,
+      "lastModifiedDate": "2026-09-23T13:08:00Z",
+      "locale": {
+        "id": "es_ES_EURO",
+        "refName": "Spain (Spanish EURO)"
+      },
+      "name": "ESP",
+      "overrideCurrencyFormat": false,
+      "symbol": "EUR",
+      "symbolPlacement": {
+        "id": "1",
+        "refName": "Before Number"
+      }
+    }
+  },
+  "customer": {
+    "accessRole": {
+      "id": "14",
+      "refName": "Customer Centre"
+    },
+    "addressBook": {
+      "items": [
+        {
+          "addressBookAddress": {
+            "addr1": "Avenida de la Diputación, Edificio Inditex",
+            "addrText": "Industria de Diseño Textil, S.A. (Inditex, S.A.)\nAvenida de la Diputación, Edificio Inditex\nArteixo, A Coruña  15142\nSpain",
+            "addressee": "Industria de Diseño Textil, S.A. (Inditex, S.A.)",
+            "city": "Arteixo, A Coruña",
+            "country": {
+              "id": "ES",
+              "refName": "Spain"
+            },
+            "override": false,
+            "zip": "15142"
+          },
+          "addressBookAddress_text": "Industria de Diseño Textil, S.A. (Inditex, S.A.)\nAvenida de la Diputación, Edificio Inditex\nArteixo, A Coruña  15142\nSpain",
+          "addressId": "3",
+          "defaultBilling": true,
+          "defaultShipping": true,
+          "id": 3,
+          "internalId": 3,
+          "isResidential": false,
+          "label": "Avenida de la Diputación, Edificio Inditex"
+        }
+      ],
+      "totalResults": 1
+    },
+    "aging": 1256.72,
+    "aging1": 0,
+    "aging2": 0,
+    "aging3": 0,
+    "aging4": 0,
+    "alcoholRecipientType": {
+      "id": "CONSUMER",
+      "refName": "Consumer"
+    },
+    "balance": 1256.72,
+    "companyName": "Industria de Diseño Textil, S.A. (Inditex, S.A.)",
+    "contactList": {
+      "count": 0,
+      "hasMore": false,
+      "items": [],
+      "offset": 0,
+      "totalResults": 0
+    },
+    "contactRoles": {
+      "items": [],
+      "totalResults": 0
+    },
+    "creditHoldOverride": {
+      "id": "AUTO",
+      "refName": "Auto"
+    },
+    "currency": {
+      "id": "1",
+      "refName": "ESP"
+    },
+    "currencyList": {
+      "items": [
+        {
+          "balance": 1256.72,
+          "currency": {
+            "id": "1",
+            "refName": "ESP"
+          },
+          "depositBalance": 0,
+          "displaySymbol": "€",
+          "overdueBalance": 0,
+          "overrideCurrencyFormat": false,
+          "symbolPlacement": {
+            "id": "1",
+            "refName": "Before Number"
+          },
+          "unbilledOrders": 0
+        }
+      ],
+      "totalResults": 1
+    },
+    "customForm": {
+      "id": "-2",
+      "refName": "Standard Customer Form"
+    },
+    "dateCreated": "2026-09-23T09:24:00Z",
+    "daysOverdue": 0,
+    "defaultAddress": "Industria de Diseño Textil, S.A. (Inditex, S.A.)\nAvenida de la Diputación, Edificio Inditex\nArteixo, A Coruña  15142\nSpain",
+    "depositBalance": 0,
+    "emailPreference": {
+      "id": "DEFAULT",
+      "refName": "Default"
+    },
+    "emailTransactions": false,
+    "entityId": "3 Industria de Diseño Textil, S.A. (Inditex, S.A.)",
+    "entityStatus": {
+      "id": "13",
+      "refName": "CUSTOMER-Closed Won"
+    },
+    "faxTransactions": false,
+    "giveAccess": false,
+    "groupPricing": {
+      "items": [],
+      "totalResults": 0
+    },
+    "id": "7",
+    "isBudgetApproved": false,
+    "isInactive": false,
+    "isPerson": false,
+    "itemPricing": {
+      "items": [],
+      "totalResults": 0
+    },
+    "lastModifiedDate": "2026-09-23T09:24:00Z",
+    "monthlyClosing": {
+      "id": "31",
+      "refName": "End of the Month"
+    },
+    "overdueBalance": 0,
+    "printTransactions": false,
+    "receivablesAccount": {
+      "id": "-10",
+      "refName": "Use System Preference"
+    },
+    "sendEmail": false,
+    "shipComplete": false,
+    "shippingCarrier": {
+      "id": "nonups",
+      "refName": "FedEx/USPS/More"
+    },
+    "subsidiary": {
+      "id": "3",
+      "refName": "Invopop SL"
+    },
+    "taxExempt": true,
+    "taxable": false,
+    "unbilledOrders": 0,
+    "vatRegNumber": "ESA15075062"
+  },
+  "invoice": {
+    "amountPaid": 0,
+    "amountRemaining": 1116.5,
+    "amountRemainingTotalBox": 1116.5,
+    "billAddress": "Industria de Diseño Textil, S.A. (Inditex, S.A.)\nAvenida de la Diputación, Edificio Inditex\nArteixo, A Coruña  15142\nSpain",
+    "billAddressList": {
+      "id": "3",
+      "refName": "Avenida de la Diputación, Edificio Inditex"
+    },
+    "billingAddress": {
+      "addr1": "Avenida de la Diputación, Edificio Inditex",
+      "addrText": "Industria de Diseño Textil, S.A. (Inditex, S.A.)\nAvenida de la Diputación, Edificio Inditex\nArteixo, A Coruña  15142\nSpain",
+      "addressee": "Industria de Diseño Textil, S.A. (Inditex, S.A.)",
+      "city": "Arteixo, A Coruña",
+      "country": {
+        "id": "ES",
+        "refName": "Spain"
+      },
+      "override": false,
+      "zip": "15142"
+    },
+    "billingAddress_text": "Industria de Diseño Textil, S.A. (Inditex, S.A.)\nAvenida de la Diputación, Edificio Inditex\nArteixo, A Coruña  15142\nSpain",
+    "canHaveStackable": false,
+    "createdDate": "2026-09-24T21:28:00Z",
+    "currency": {
+      "id": "1",
+      "refName": "ESP"
+    },
+    "customForm": {
+      "id": "91",
+      "refName": "Standard Service Invoice"
+    },
+    "discountTotal": 0,
+    "dueDate": "2026-09-24",
+    "entity": {
+      "id": "7",
+      "refName": "3 Industria de Diseño Textil, S.A. (Inditex, S.A.)"
+    },
+    "exchangeRate": 1,
+    "expCost": {
+      "items": [],
+      "totalResults": 0
+    },
+    "expCostDiscPrint": false,
+    "id": "9",
+    "item": {
+      "items": [
+        {
+          "account": {
+            "id": "134",
+            "refName": "134"
+          },
+          "amount": 900,
+          "excludeFromRateRequest": false,
+          "grossAmt": 1089,
+          "item": {
+            "id": "14",
+            "refName": "SVC-001 Consulting"
+          },
+          "itemSubtype": {
+            "id": "Sale",
+            "refName": "Sale"
+          },
+          "itemType": {
+            "id": "Service",
+            "refName": "Service"
+          },
+          "line": 1,
+          "lineUniqueKey": "50",
+          "marginal": false,
+          "price": {
+            "id": "1",
+            "refName": "Base Price"
+          },
+          "printItems": false,
+          "quantity": 8,
+          "rate": 112.5,
+          "tax1Amt": 189,
+          "taxCode": {
+            "id": "6",
+            "refName": "VAT:S-ES"
+          },
+          "taxRate1": 21
+        },
+        {
+          "account": {
+            "id": "135",
+            "refName": "135"
+          },
+          "amount": 135,
+          "excludeFromRateRequest": false,
+          "grossAmt": 148.5,
+          "item": {
+            "id": "15",
+            "refName": "SVC-002 Support"
+          },
+          "itemSubtype": {
+            "id": "Sale",
+            "refName": "Sale"
+          },
+          "itemType": {
+            "id": "Service",
+            "refName": "Service"
+          },
+          "line": 2,
+          "lineUniqueKey": "51",
+          "marginal": false,
+          "price": {
+            "id": "1",
+            "refName": "Base Price"
+          },
+          "printItems": false,
+          "quantity": 3,
+          "rate": 45,
+          "tax1Amt": 13.5,
+          "taxCode": {
+            "id": "7",
+            "refName": "VAT:R-ES"
+          },
+          "taxRate1": 10
+        },
+        {
+          "amount": 1035,
+          "excludeFromRateRequest": false,
+          "grossAmt": 1237.5,
+          "item": {
+            "id": "18",
+            "refName": "SUBTOTAL"
+          },
+          "itemType": {
+            "id": "Subtotal",
+            "refName": "Subtotal"
+          },
+          "line": 3,
+          "lineUniqueKey": "52",
+          "marginal": false,
+          "price": {
+            "id": "-1",
+            "refName": ""
+          },
+          "printItems": false,
+          "tax1Amt": 202.5
+        },
+        {
+          "account": {
+            "id": "134",
+            "refName": "134"
+          },
+          "amount": -100,
+          "excludeFromRateRequest": false,
+          "grossAmt": -121,
+          "item": {
+            "id": "17",
+            "refName": "DISC-001 Discount"
+          },
+          "itemType": {
+            "id": "Discount",
+            "refName": "Discount"
+          },
+          "line": 4,
+          "lineUniqueKey": "53",
+          "marginal": false,
+          "price": {
+            "id": "1",
+            "refName": "Base Price"
+          },
+          "printItems": false,
+          "rate": -100,
+          "tax1Amt": -21,
+          "taxCode": {
+            "id": "6",
+            "refName": "VAT:S-ES"
+          },
+          "taxRate1": 21
+        }
+      ],
+      "totalResults": 4
+    },
+    "itemCost": {
+      "items": [],
+      "totalResults": 0
+    },
+    "itemCostDiscPrint": false,
+    "lastModifiedDate": "2026-09-24T21:28:00Z",
+    "memo": "Test: subtotal discount across rates",
+    "originator": "restWebServices",
+    "postingPeriod": {
+      "id": "30",
+      "refName": "Sep 2026"
+    },
+    "prevDate": "2026-09-24",
+    "salesEffectiveDate": "2026-09-24",
+    "shipAddress": "Industria de Diseño Textil, S.A. (Inditex, S.A.)\nAvenida de la Diputación, Edificio Inditex\nArteixo, A Coruña  15142\nSpain",
+    "shipAddressList": {
+      "id": "3",
+      "refName": "Avenida de la Diputación, Edificio Inditex"
+    },
+    "shipDate": "2026-09-24",
+    "shipIsResidential": false,
+    "shipOverride": false,
+    "shippingAddress": {
+      "addr1": "Avenida de la Diputación, Edificio Inditex",
+      "addrText": "Industria de Diseño Textil, S.A. (Inditex, S.A.)\nAvenida de la Diputación, Edificio Inditex\nArteixo, A Coruña  15142\nSpain",
+      "addressee": "Industria de Diseño Textil, S.A. (Inditex, S.A.)",
+      "city": "Arteixo, A Coruña",
+      "country": {
+        "id": "ES",
+        "refName": "Spain"
+      },
+      "override": false,
+      "zip": "15142"
+    },
+    "shippingAddress_text": "Industria de Diseño Textil, S.A. (Inditex, S.A.)\nAvenida de la Diputación, Edificio Inditex\nArteixo, A Coruña  15142\nSpain",
+    "source": {
+      "id": "REST Web Services",
+      "refName": "REST Web Services"
+    },
+    "sourceSystem": {
+      "id": "restWebServices",
+      "refName": "REST Web Services"
+    },
+    "status": {
+      "id": "Open",
+      "refName": "Open"
+    },
+    "subsidiary": {
+      "id": "3",
+      "refName": "Invopop SL"
+    },
+    "subtotal": 935,
+    "taxTotal": 181.5,
+    "time": {
+      "items": [],
+      "totalResults": 0
+    },
+    "timeDiscPrint": false,
+    "toBeEmailed": false,
+    "toBeFaxed": false,
+    "toBePrinted": false,
+    "total": 1116.5,
+    "tranDate": "2026-09-24",
+    "tranId": "9",
+    "transactionNumber": "CUSTINVC9",
+    "type": {
+      "id": "custinvc",
+      "refName": "custinvc"
+    },
+    "vatRegNum": "ESA15075062"
+  },
+  "subsidiary": {
+    "checklayout": {
+      "id": "50",
+      "refName": "Standard Check Layout"
+    },
+    "country": {
+      "id": "ES",
+      "refName": "Spain"
+    },
+    "currency": {
+      "id": "1",
+      "refName": "ESP"
+    },
+    "edition": {
+      "id": "XX",
+      "refName": "XX"
+    },
+    "federalIdNumber": "B85905495",
+    "fiscalCalendar": {
+      "id": "1",
+      "refName": "Standard Fiscal Calendar"
+    },
+    "id": "3",
+    "isElimination": false,
+    "isInactive": false,
+    "lastModifiedDate": "2026-09-23T12:59:00Z",
+    "legalName": "Invopop SL",
+    "logo": {
+      "id": "1",
+      "refName": "InvopopLogo.jpeg"
+    },
+    "mainAddress": {
+      "addr1": "Calle Pradillo, 42",
+      "addrText": "Invopop SL\r\nCalle Pradillo, 42\r\nMadrid  28002\r\nSpain",
+      "addressee": "Invopop SL",
+      "city": "Madrid",
+      "country": {
+        "id": "ES",
+        "refName": "Spain"
+      },
+      "override": false,
+      "zip": "28002"
+    },
+    "name": "Invopop SL",
+    "nexus": {
+      "items": [
+        {
+          "country": "ES",
+          "nexusId": {
+            "id": "1",
+            "refName": "Spain "
+          }
+        }
+      ],
+      "totalResults": 1
+    },
+    "pageLogo": {
+      "id": "1",
+      "refName": "InvopopLogo.jpeg"
+    },
+    "parent": {
+      "id": "1",
+      "refName": "Parent Company"
+    },
+    "returnAddress": {
+      "addrText": "Spain",
+      "country": {
+        "id": "ES",
+        "refName": "Spain"
+      },
+      "override": false
+    },
+    "shippingAddress": {
+      "addrText": "Spain",
+      "country": {
+        "id": "ES",
+        "refName": "Spain"
+      },
+      "override": false
+    },
+    "showSubsidiaryName": false,
+    "taxFiscalCalendar": {
+      "id": "1",
+      "refName": "Standard Fiscal Calendar"
+    }
+  },
+  "taxCodes": {
+    "6": {
+      "available": {
+        "id": "BOTH",
+        "refName": "Both"
+      },
+      "description": "Standard Domestic rate",
+      "ecCode": false,
+      "excludeFromTaxReports": false,
+      "exempt": false,
+      "export": false,
+      "id": "6",
+      "includeChildren": false,
+      "isDefault": false,
+      "isInactive": false,
+      "itemId": "S-ES",
+      "itemType": "TaxItem",
+      "nexusCountry": {
+        "id": "ES",
+        "refName": "ES"
+      },
+      "purchaseAccount": {
+        "id": "126",
+        "refName": "126"
+      },
+      "rate": 21,
+      "reverseCharge": false,
+      "saleAccount": {
+        "id": "125",
+        "refName": "125"
+      },
+      "service": false,
+      "subsidiary": {},
+      "taxAgency": {
+        "id": "2",
+        "refName": "Tax Agency ES"
+      },
+      "taxType": {
+        "id": "1",
+        "refName": "VAT"
+      }
+    },
+    "7": {
+      "available": {
+        "id": "BOTH",
+        "refName": "Both"
+      },
+      "description": "Reduced rate",
+      "ecCode": false,
+      "excludeFromTaxReports": false,
+      "exempt": false,
+      "export": false,
+      "id": "7",
+      "includeChildren": false,
+      "isDefault": false,
+      "isInactive": false,
+      "itemId": "R-ES",
+      "itemType": "TaxItem",
+      "nexusCountry": {
+        "id": "ES",
+        "refName": "ES"
+      },
+      "purchaseAccount": {
+        "id": "126",
+        "refName": "126"
+      },
+      "rate": 10,
+      "reverseCharge": false,
+      "saleAccount": {
+        "id": "125",
+        "refName": "125"
+      },
+      "service": false,
+      "subsidiary": {},
+      "taxAgency": {
+        "id": "2",
+        "refName": "Tax Agency ES"
+      },
+      "taxType": {
+        "id": "1",
+        "refName": "VAT"
+      }
+    }
+  }
+}

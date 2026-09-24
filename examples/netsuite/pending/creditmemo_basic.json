@@ -1,0 +1,189 @@
+{
+  "amountPaid": 0.0,
+  "amountRemaining": 363.0,
+  "applied": 0.0,
+  "apply": {
+    "items": [
+      {
+        "apply": false,
+        "applyDate": "2026-09-24",
+        "currency": "ESP",
+        "doc": {
+          "id": "1",
+          "refName": "1"
+        },
+        "due": 3630.0,
+        "line": 0,
+        "refNum": "1",
+        "total": 3630.0,
+        "type": "Invoice"
+      },
+      {
+        "apply": false,
+        "applyDate": "2026-09-24",
+        "currency": "ESP",
+        "doc": {
+          "id": "10",
+          "refName": "10"
+        },
+        "due": 2904.0,
+        "line": 0,
+        "refNum": "10",
+        "total": 2904.0,
+        "type": "Invoice"
+      },
+      {
+        "apply": false,
+        "applyDate": "2026-09-24",
+        "currency": "ESP",
+        "doc": {
+          "id": "4",
+          "refName": "4"
+        },
+        "due": 1786.81,
+        "line": 0,
+        "refNum": "4",
+        "total": 1786.81,
+        "type": "Invoice"
+      }
+    ],
+    "totalResults": 3
+  },
+  "autoApply": false,
+  "billAddress": "Telefónica de España, S.A.U.\nGran Vía 28\nMadrid  28013\nSpain",
+  "billAddressList": {
+    "id": "1",
+    "refName": "Gran Vía 28"
+  },
+  "billingAddress": {
+    "addr1": "Gran Vía 28",
+    "addressee": "Telefónica de España, S.A.U.",
+    "addrText": "Telefónica de España, S.A.U.\nGran Vía 28\nMadrid  28013\nSpain",
+    "city": "Madrid",
+    "country": {
+      "id": "ES",
+      "refName": "Spain"
+    },
+    "override": false,
+    "zip": "28013"
+  },
+  "billingAddress_text": "Telefónica de España, S.A.U.\nGran Vía 28\nMadrid  28013\nSpain",
+  "canHaveStackable": false,
+  "createdDate": "2026-09-24T21:28:00Z",
+  "currency": {
+    "id": "1",
+    "refName": "ESP"
+  },
+  "customForm": {
+    "id": "94",
+    "refName": "Standard Credit Memo"
+  },
+  "discountTotal": 0.0,
+  "entity": {
+    "id": "5",
+    "refName": "1 Telefónica de España, S.A.U."
+  },
+  "exchangeRate": 1.0,
+  "id": "102",
+  "item": {
+    "items": [
+      {
+        "account": {
+          "id": "134",
+          "refName": "134"
+        },
+        "amount": 300.0,
+        "grossAmt": 363.0,
+        "item": {
+          "id": "14",
+          "refName": "SVC-001 Consulting"
+        },
+        "itemSubtype": {
+          "id": "Sale",
+          "refName": "Sale"
+        },
+        "itemType": {
+          "id": "Service",
+          "refName": "Service"
+        },
+        "line": 1,
+        "lineUniqueKey": "105",
+        "marginal": false,
+        "price": {
+          "id": "1",
+          "refName": "Base Price"
+        },
+        "printItems": false,
+        "quantity": 2.0,
+        "rate": 150.0,
+        "tax1Amt": 63.0,
+        "taxCode": {
+          "id": "6",
+          "refName": "VAT:S-ES"
+        },
+        "taxRate1": 21.0
+      }
+    ],
+    "totalResults": 1
+  },
+  "lastModifiedDate": "2026-09-24T21:28:00Z",
+  "memo": "Test: credit memo",
+  "originator": "restWebServices",
+  "postingPeriod": {
+    "id": "30",
+    "refName": "Sep 2026"
+  },
+  "prevDate": "2026-09-24",
+  "salesEffectiveDate": "2026-09-24",
+  "shipAddress": "Telefónica de España, S.A.U.\nGran Vía 28\nMadrid  28013\nSpain",
+  "shipAddressList": {
+    "id": "1",
+    "refName": "Gran Vía 28"
+  },
+  "shipIsResidential": false,
+  "shipOverride": false,
+  "shippingAddress": {
+    "addr1": "Gran Vía 28",
+    "addressee": "Telefónica de España, S.A.U.",
+    "addrText": "Telefónica de España, S.A.U.\nGran Vía 28\nMadrid  28013\nSpain",
+    "city": "Madrid",
+    "country": {
+      "id": "ES",
+      "refName": "Spain"
+    },
+    "override": false,
+    "zip": "28013"
+  },
+  "shippingAddress_text": "Telefónica de España, S.A.U.\nGran Vía 28\nMadrid  28013\nSpain",
+  "source": {
+    "id": "REST Web Services",
+    "refName": "REST Web Services"
+  },
+  "sourceSystem": {
+    "id": "restWebServices",
+    "refName": "REST Web Services"
+  },
+  "status": {
+    "id": "Open",
+    "refName": "Open"
+  },
+  "subsidiary": {
+    "id": "3",
+    "refName": "Invopop SL"
+  },
+  "subtotal": 300.0,
+  "taxTotal": 63.0,
+  "toBeEmailed": false,
+  "toBeFaxed": false,
+  "toBePrinted": false,
+  "total": 363.0,
+  "tranDate": "2026-09-24",
+  "tranId": "1",
+  "transactionNumber": "CUSTCRED1",
+  "type": {
+    "id": "custcred",
+    "refName": "custcred"
+  },
+  "unapplied": 363.0,
+  "vatRegNum": "ESA82018474"
+}

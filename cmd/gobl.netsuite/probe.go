@@ -82,6 +82,14 @@ func (p *probeOpts) cmd() *cobra.Command {
 	}
 	cmd.AddCommand(schema)
 
+	create := &cobra.Command{
+		Use:   "create <record-type> [file]",
+		Short: "Create a record from JSON, e.g. to add test data, printing the new internal ID",
+		Args:  cobra.RangeArgs(1, 2),
+		RunE:  p.runCreate,
+	}
+	cmd.AddCommand(create)
+
 	return cmd
 }
 
@@ -160,6 +168,32 @@ func (p *probeOpts) runSchema(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	return writeJSON(cmd, data)
+}
+
+func (p *probeOpts) runCreate(cmd *cobra.Command, args []string) error {
+	nc, err := p.netsuiteClient()
+	if err != nil {
+		return err
+	}
+	in := cmd.InOrStdin()
+	if len(args) > 1 && args[1] != "-" {
+		f, err := os.Open(args[1])
+		if err != nil {
+			return err
+		}
+		defer f.Close() //nolint:errcheck
+		in = f
+	}
+	var body json.RawMessage
+	if err := json.NewDecoder(in).Decode(&body); err != nil {
+		return fmt.Errorf("parsing input: %w", err)
+	}
+	id, err := nc.CreateRecord(cmd.Context(), args[0], body)
+	if err != nil {
+		return err
+	}
+	cmd.Println(id)
+	return nil
 }
 
 func writeJSON(cmd *cobra.Command, data any) error {

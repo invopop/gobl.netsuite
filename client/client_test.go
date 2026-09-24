@@ -84,6 +84,20 @@ func TestQuery(t *testing.T) {
 	assert.JSONEq(t, `{"id":"42"}`, string(res.Items[0]))
 }
 
+func TestCreateRecord(t *testing.T) {
+	nc := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "/services/rest/record/v1/customer", r.URL.Path)
+		body, _ := io.ReadAll(r.Body)
+		assert.JSONEq(t, `{"companyName":"ACME"}`, string(body))
+		w.Header().Set("Location", "https://1234567-sb1.suitetalk.api.netsuite.com/services/rest/record/v1/customer/99")
+		w.WriteHeader(http.StatusNoContent)
+	})
+	id, err := nc.CreateRecord(t.Context(), "customer", map[string]string{"companyName": "ACME"})
+	require.NoError(t, err)
+	assert.Equal(t, "99", id)
+}
+
 func TestErrors(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		nc := newTestClient(t, func(w http.ResponseWriter, _ *http.Request) {

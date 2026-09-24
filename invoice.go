@@ -83,6 +83,9 @@ func FromInvoice(b *Bundle) (*Result, error) {
 		Regime: tax.WithRegime(country),
 		Type:   bill.InvoiceTypeStandard,
 		Code:   cbc.Code(src.TranID),
+		// NetSuite rounds line amounts, and the tax of each rate, to the
+		// currency's precision before adding them up.
+		Tax: &bill.Tax{Rounding: tax.RoundingRuleCurrency},
 		Meta: cbc.Meta{
 			MetaKeyNetSuiteID:   src.ID,
 			MetaKeyNetSuiteType: "invoice",
@@ -190,14 +193,8 @@ func (r *Result) setPayment() error {
 // checkHeaderAmounts flags header level amounts not yet supported, which
 // would otherwise only be noticed as a difference in totals.
 func (r *Result) checkHeaderAmounts() {
-	src := r.records.invoice
-	for path, n := range map[string]json.Number{
-		"invoice.discountTotal": src.DiscountTotal,
-		"invoice.shippingCost":  src.ShippingCost,
-	} {
-		if a, err := parseAmount(n); err == nil && !a.IsZero() {
-			r.notice(path, "not supported yet")
-		}
+	if a, err := parseAmount(r.records.invoice.ShippingCost); err == nil && !a.IsZero() {
+		r.notice("invoice.shippingCost", "not supported yet")
 	}
 }
 
@@ -235,13 +232,23 @@ func (r *Result) CheckTotals() error {
 		return fmt.Errorf("invoice has not been calculated")
 	}
 	src := r.records.invoice
+	subtotal, err := r.money(src.Subtotal)
+	if err != nil {
+		return fmt.Errorf("invoice subtotal: %w", err)
+	}
+	discount, err := r.money(src.DiscountTotal)
+	if err != nil {
+		return fmt.Errorf("invoice discountTotal: %w", err)
+	}
 	var diffs []string
 	for _, c := range []struct {
 		name   string
 		want   json.Number
 		actual num.Amount
 	}{
-		{"subtotal", src.Subtotal, t.Sum},
+		// Discount lines may become invoice discounts in GOBL, so the sum of
+		// lines is not comparable, only the net total after all discounts.
+		{"subtotal+discountTotal", json.Number(subtotal.Add(discount).String()), t.Total},
 		{"taxTotal", src.TaxTotal, t.Tax},
 		{"total", src.Total, t.TotalWithTax},
 	} {
@@ -265,6 +272,18 @@ func parseDate(s string) (cal.Date, error) {
 		return cal.Date{}, err
 	}
 	return cal.DateOf(t), nil
+}
+
+// money parses a NetSuite currency amount, with at least the precision of
+// the invoice currency. NetSuite numbers have varying precision, e.g. "100.0"
+// or "3166.67", and amount arithmetic keeps the precision of the left hand
+// operand, so amounts must be scaled before they are added or subtracted.
+func (r *Result) money(n json.Number) (num.Amount, error) {
+	a, err := parseAmount(n)
+	if err != nil {
+		return a, err
+	}
+	return a.RescaleUp(r.Invoice.Currency.Def().Subunits), nil
 }
 
 // parseAmount converts a NetSuite number into an amount, where an empty value

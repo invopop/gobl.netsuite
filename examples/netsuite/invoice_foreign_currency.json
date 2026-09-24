@@ -1,0 +1,512 @@
+{
+  "currencies": {
+    "1": {
+      "currencyPrecision": 2,
+      "displaySymbol": "€",
+      "exchangeRate": 1,
+      "formatSample": "€1.234,56",
+      "id": "1",
+      "isBaseCurrency": true,
+      "isInactive": false,
+      "lastModifiedDate": "2026-09-23T13:08:00Z",
+      "locale": {
+        "id": "es_ES_EURO",
+        "refName": "Spain (Spanish EURO)"
+      },
+      "name": "ESP",
+      "overrideCurrencyFormat": false,
+      "symbol": "EUR",
+      "symbolPlacement": {
+        "id": "1",
+        "refName": "Before Number"
+      }
+    },
+    "2": {
+      "currencyPrecision": 2,
+      "displaySymbol": "$",
+      "exchangeRate": 1.101,
+      "formatSample": "$1,234.56",
+      "id": "2",
+      "isBaseCurrency": false,
+      "isInactive": false,
+      "lastModifiedDate": "2026-08-30T17:05:00Z",
+      "locale": {
+        "id": "en_US",
+        "refName": "United States (English)"
+      },
+      "name": "US Dollar",
+      "overrideCurrencyFormat": false,
+      "symbol": "USD",
+      "symbolPlacement": {
+        "id": "1",
+        "refName": "Before Number"
+      }
+    }
+  },
+  "customer": {
+    "accessRole": {
+      "id": "14",
+      "refName": "Customer Centre"
+    },
+    "addressBook": {
+      "items": [
+        {
+          "addressBookAddress": {
+            "addr1": "354 Oyster Point Blvd",
+            "addrText": "Stripe, Inc.\n354 Oyster Point Blvd\nSouth San Francisco CA 94080\nUnited States",
+            "addressee": "Stripe, Inc.",
+            "city": "South San Francisco",
+            "country": {
+              "id": "US",
+              "refName": "United States"
+            },
+            "override": false,
+            "state": "CA",
+            "zip": "94080"
+          },
+          "addressBookAddress_text": "Stripe, Inc.\n354 Oyster Point Blvd\nSouth San Francisco CA 94080\nUnited States",
+          "addressId": "8",
+          "defaultBilling": true,
+          "defaultShipping": true,
+          "id": 8,
+          "internalId": 8,
+          "isResidential": false,
+          "label": "South San Francisco"
+        }
+      ],
+      "totalResults": 1
+    },
+    "aging": 2549.83,
+    "aging1": 0,
+    "aging2": 0,
+    "aging3": 0,
+    "aging4": 0,
+    "alcoholRecipientType": {
+      "id": "CONSUMER",
+      "refName": "Consumer"
+    },
+    "balance": 2549.83,
+    "companyName": "Stripe, Inc.",
+    "contactList": {
+      "count": 0,
+      "hasMore": false,
+      "items": [],
+      "offset": 0,
+      "totalResults": 0
+    },
+    "contactRoles": {
+      "items": [],
+      "totalResults": 0
+    },
+    "creditHoldOverride": {
+      "id": "AUTO",
+      "refName": "Auto"
+    },
+    "currency": {
+      "id": "2",
+      "refName": "US Dollar"
+    },
+    "currencyList": {
+      "items": [
+        {
+          "balance": 2549.83,
+          "currency": {
+            "id": "2",
+            "refName": "US Dollar"
+          },
+          "depositBalance": 0,
+          "displaySymbol": "$",
+          "overdueBalance": 0,
+          "overrideCurrencyFormat": false,
+          "symbolPlacement": {
+            "id": "1",
+            "refName": "Before Number"
+          },
+          "unbilledOrders": 0
+        }
+      ],
+      "totalResults": 1
+    },
+    "customForm": {
+      "id": "-2",
+      "refName": "Standard Customer Form"
+    },
+    "dateCreated": "2026-09-24T21:26:00Z",
+    "daysOverdue": 0,
+    "defaultAddress": "Stripe, Inc.\n354 Oyster Point Blvd\nSouth San Francisco CA 94080\nUnited States",
+    "depositBalance": 0,
+    "emailPreference": {
+      "id": "DEFAULT",
+      "refName": "Default"
+    },
+    "emailTransactions": false,
+    "entityId": "5 Stripe, Inc.",
+    "entityStatus": {
+      "id": "13",
+      "refName": "CUSTOMER-Closed Won"
+    },
+    "faxTransactions": false,
+    "giveAccess": false,
+    "groupPricing": {
+      "items": [],
+      "totalResults": 0
+    },
+    "id": "16",
+    "isBudgetApproved": false,
+    "isInactive": false,
+    "isPerson": false,
+    "itemPricing": {
+      "items": [],
+      "totalResults": 0
+    },
+    "lastModifiedDate": "2026-09-24T21:26:00Z",
+    "monthlyClosing": {
+      "id": "31",
+      "refName": "End of the Month"
+    },
+    "overdueBalance": 0,
+    "printTransactions": false,
+    "receivablesAccount": {
+      "id": "-10",
+      "refName": "Use System Preference"
+    },
+    "sendEmail": false,
+    "shipComplete": false,
+    "shippingCarrier": {
+      "id": "nonups",
+      "refName": "FedEx/USPS/More"
+    },
+    "subsidiary": {
+      "id": "3",
+      "refName": "Invopop SL"
+    },
+    "taxExempt": true,
+    "taxable": false,
+    "unbilledOrders": 0
+  },
+  "invoice": {
+    "amountPaid": 0,
+    "amountRemaining": 2549.83,
+    "amountRemainingTotalBox": 2549.83,
+    "billAddress": "Stripe, Inc.\n354 Oyster Point Blvd\nSouth San Francisco CA 94080\nUnited States",
+    "billAddressList": {
+      "id": "8",
+      "refName": "South San Francisco"
+    },
+    "billingAddress": {
+      "addr1": "354 Oyster Point Blvd",
+      "addrText": "Stripe, Inc.\n354 Oyster Point Blvd\nSouth San Francisco CA 94080\nUnited States",
+      "addressee": "Stripe, Inc.",
+      "city": "South San Francisco",
+      "country": {
+        "id": "US",
+        "refName": "United States"
+      },
+      "override": false,
+      "state": "CA",
+      "zip": "94080"
+    },
+    "billingAddress_text": "Stripe, Inc.\n354 Oyster Point Blvd\nSouth San Francisco CA 94080\nUnited States",
+    "canHaveStackable": false,
+    "createdDate": "2026-09-24T21:28:00Z",
+    "currency": {
+      "id": "2",
+      "refName": "US Dollar"
+    },
+    "customForm": {
+      "id": "91",
+      "refName": "Standard Service Invoice"
+    },
+    "discountTotal": 0,
+    "dueDate": "2026-09-24",
+    "entity": {
+      "id": "16",
+      "refName": "5 Stripe, Inc."
+    },
+    "exchangeRate": 0.8567,
+    "expCost": {
+      "items": [],
+      "totalResults": 0
+    },
+    "expCostDiscPrint": false,
+    "id": "7",
+    "item": {
+      "items": [
+        {
+          "account": {
+            "id": "134",
+            "refName": "134"
+          },
+          "amount": 2499.88,
+          "excludeFromRateRequest": false,
+          "grossAmt": 2499.88,
+          "item": {
+            "id": "14",
+            "refName": "SVC-001 Consulting"
+          },
+          "itemSubtype": {
+            "id": "Sale",
+            "refName": "Sale"
+          },
+          "itemType": {
+            "id": "Service",
+            "refName": "Service"
+          },
+          "line": 1,
+          "lineUniqueKey": "41",
+          "marginal": false,
+          "price": {
+            "id": "1",
+            "refName": "Base Price"
+          },
+          "printItems": false,
+          "quantity": 12.5,
+          "rate": 199.99,
+          "tax1Amt": 0,
+          "taxCode": {
+            "id": "9",
+            "refName": "VAT:Z-ES"
+          },
+          "taxRate1": 0
+        },
+        {
+          "account": {
+            "id": "135",
+            "refName": "135"
+          },
+          "amount": 49.95,
+          "excludeFromRateRequest": false,
+          "grossAmt": 49.95,
+          "item": {
+            "id": "15",
+            "refName": "SVC-002 Support"
+          },
+          "itemSubtype": {
+            "id": "Sale",
+            "refName": "Sale"
+          },
+          "itemType": {
+            "id": "Service",
+            "refName": "Service"
+          },
+          "line": 2,
+          "lineUniqueKey": "42",
+          "marginal": false,
+          "price": {
+            "id": "1",
+            "refName": "Base Price"
+          },
+          "printItems": false,
+          "quantity": 1,
+          "rate": 49.95,
+          "tax1Amt": 0,
+          "taxCode": {
+            "id": "9",
+            "refName": "VAT:Z-ES"
+          },
+          "taxRate1": 0
+        }
+      ],
+      "totalResults": 2
+    },
+    "itemCost": {
+      "items": [],
+      "totalResults": 0
+    },
+    "itemCostDiscPrint": false,
+    "lastModifiedDate": "2026-09-24T21:28:00Z",
+    "memo": "Test: foreign currency",
+    "originator": "restWebServices",
+    "postingPeriod": {
+      "id": "30",
+      "refName": "Sep 2026"
+    },
+    "prevDate": "2026-09-24",
+    "salesEffectiveDate": "2026-09-24",
+    "shipAddress": "Stripe, Inc.\n354 Oyster Point Blvd\nSouth San Francisco CA 94080\nUnited States",
+    "shipAddressList": {
+      "id": "8",
+      "refName": "South San Francisco"
+    },
+    "shipDate": "2026-09-24",
+    "shipIsResidential": false,
+    "shipOverride": false,
+    "shippingAddress": {
+      "addr1": "354 Oyster Point Blvd",
+      "addrText": "Stripe, Inc.\n354 Oyster Point Blvd\nSouth San Francisco CA 94080\nUnited States",
+      "addressee": "Stripe, Inc.",
+      "city": "South San Francisco",
+      "country": {
+        "id": "US",
+        "refName": "United States"
+      },
+      "override": false,
+      "state": "CA",
+      "zip": "94080"
+    },
+    "shippingAddress_text": "Stripe, Inc.\n354 Oyster Point Blvd\nSouth San Francisco CA 94080\nUnited States",
+    "source": {
+      "id": "REST Web Services",
+      "refName": "REST Web Services"
+    },
+    "sourceSystem": {
+      "id": "restWebServices",
+      "refName": "REST Web Services"
+    },
+    "status": {
+      "id": "Open",
+      "refName": "Open"
+    },
+    "subsidiary": {
+      "id": "3",
+      "refName": "Invopop SL"
+    },
+    "subtotal": 2549.83,
+    "taxTotal": 0,
+    "time": {
+      "items": [],
+      "totalResults": 0
+    },
+    "timeDiscPrint": false,
+    "toBeEmailed": false,
+    "toBeFaxed": false,
+    "toBePrinted": false,
+    "total": 2549.83,
+    "tranDate": "2026-09-24",
+    "tranId": "7",
+    "transactionNumber": "CUSTINVC7",
+    "type": {
+      "id": "custinvc",
+      "refName": "custinvc"
+    }
+  },
+  "subsidiary": {
+    "checklayout": {
+      "id": "50",
+      "refName": "Standard Check Layout"
+    },
+    "country": {
+      "id": "ES",
+      "refName": "Spain"
+    },
+    "currency": {
+      "id": "1",
+      "refName": "ESP"
+    },
+    "edition": {
+      "id": "XX",
+      "refName": "XX"
+    },
+    "federalIdNumber": "B85905495",
+    "fiscalCalendar": {
+      "id": "1",
+      "refName": "Standard Fiscal Calendar"
+    },
+    "id": "3",
+    "isElimination": false,
+    "isInactive": false,
+    "lastModifiedDate": "2026-09-23T12:59:00Z",
+    "legalName": "Invopop SL",
+    "logo": {
+      "id": "1",
+      "refName": "InvopopLogo.jpeg"
+    },
+    "mainAddress": {
+      "addr1": "Calle Pradillo, 42",
+      "addrText": "Invopop SL\r\nCalle Pradillo, 42\r\nMadrid  28002\r\nSpain",
+      "addressee": "Invopop SL",
+      "city": "Madrid",
+      "country": {
+        "id": "ES",
+        "refName": "Spain"
+      },
+      "override": false,
+      "zip": "28002"
+    },
+    "name": "Invopop SL",
+    "nexus": {
+      "items": [
+        {
+          "country": "ES",
+          "nexusId": {
+            "id": "1",
+            "refName": "Spain "
+          }
+        }
+      ],
+      "totalResults": 1
+    },
+    "pageLogo": {
+      "id": "1",
+      "refName": "InvopopLogo.jpeg"
+    },
+    "parent": {
+      "id": "1",
+      "refName": "Parent Company"
+    },
+    "returnAddress": {
+      "addrText": "Spain",
+      "country": {
+        "id": "ES",
+        "refName": "Spain"
+      },
+      "override": false
+    },
+    "shippingAddress": {
+      "addrText": "Spain",
+      "country": {
+        "id": "ES",
+        "refName": "Spain"
+      },
+      "override": false
+    },
+    "showSubsidiaryName": false,
+    "taxFiscalCalendar": {
+      "id": "1",
+      "refName": "Standard Fiscal Calendar"
+    }
+  },
+  "taxCodes": {
+    "9": {
+      "available": {
+        "id": "BOTH",
+        "refName": "Both"
+      },
+      "description": "Zero rated transaction",
+      "ecCode": false,
+      "excludeFromTaxReports": false,
+      "exempt": false,
+      "export": false,
+      "id": "9",
+      "includeChildren": false,
+      "isDefault": false,
+      "isInactive": false,
+      "itemId": "Z-ES",
+      "itemType": "TaxItem",
+      "nexusCountry": {
+        "id": "ES",
+        "refName": "ES"
+      },
+      "purchaseAccount": {
+        "id": "126",
+        "refName": "126"
+      },
+      "rate": 0,
+      "reverseCharge": false,
+      "saleAccount": {
+        "id": "125",
+        "refName": "125"
+      },
+      "service": false,
+      "subsidiary": {},
+      "taxAgency": {
+        "id": "2",
+        "refName": "Tax Agency ES"
+      },
+      "taxType": {
+        "id": "1",
+        "refName": "VAT"
+      }
+    }
+  }
+}

@@ -11,7 +11,11 @@ Early development. NetSuite invoices can be converted into GOBL invoices for acc
 - use **legacy tax** (a tax code per line) rather than SuiteTax,
 - are **OneWorld**, as the supplier is taken from the invoice's subsidiary.
 
-Header discounts, shipping costs, and discount, markup or payment lines are not converted yet. They are reported as unmapped, and will cause the totals check to fail.
+Discount lines become line discounts when they directly follow a line with the same tax code, and invoice discounts with their own tax code otherwise (e.g. after a subtotal), matching how NetSuite taxes them. Header discounts are shared between tax codes in proportion to their net amounts, as NetSuite does. Totals use GOBL's `currency` rounding, as NetSuite rounds line amounts and the tax of each rate before summing.
+
+Not converted yet, reported as unmapped and so causing the totals check to fail: shipping costs, markup and payment lines, and discounts applied after tax. Credit memos are not supported yet.
+
+**Known difference:** with a header discount across several tax rates, NetSuite rounds the tax of the lines and of the discount separately, so its tax total can differ by a cent per rate from the tax of the net base calculated by GOBL. See `examples/netsuite/pending`.
 
 ## Packages
 
@@ -133,6 +137,9 @@ go run ./cmd/gobl.netsuite probe invoice 1234 --convert
 
 # Create a new example fixture
 go run ./cmd/gobl.netsuite probe invoice 1234 --strip-links -o examples/netsuite/invoice_new.json
+
+# Create a record from JSON, e.g. test data, printing its internal ID
+go run ./cmd/gobl.netsuite probe create invoice invoice.json
 
 # Convert a bundle file into a GOBL envelope
 go run ./cmd/gobl.netsuite convert examples/netsuite/invoice_basic.json
