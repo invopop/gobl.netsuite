@@ -1,13 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/url"
 	"os"
-	"path/filepath"
 	"strings"
 
+	goblnetsuite "github.com/invopop/gobl.netsuite"
 	"github.com/spf13/cobra"
 )
 
@@ -15,9 +16,11 @@ import (
 // NetSuite account, to help design and test the conversion to GOBL.
 type probeOpts struct {
 	*rootOpts
-	outDir string
-	limit  int
-	txType string
+	outFile    string
+	convert    bool
+	stripLinks bool
+	limit      int
+	txType     string
 }
 
 func probe(o *rootOpts) *probeOpts {
@@ -35,11 +38,13 @@ func (p *probeOpts) cmd() *cobra.Command {
 
 	invoice := &cobra.Command{
 		Use:   "invoice <id>",
-		Short: "Fetch an invoice with its customer and subsidiary",
+		Short: "Fetch an invoice and the related records needed to convert it, as a bundle",
 		Args:  cobra.ExactArgs(1),
 		RunE:  p.runInvoice,
 	}
-	invoice.Flags().StringVarP(&p.outDir, "out", "o", "", "directory to save each record in, instead of printing to stdout")
+	invoice.Flags().StringVarP(&p.outFile, "out", "o", "", "file to write to, instead of stdout")
+	invoice.Flags().BoolVar(&p.convert, "convert", false, "convert the bundle into a GOBL envelope")
+	invoice.Flags().BoolVar(&p.stripLinks, "strip-links", false, "remove links, which contain the account ID, e.g. to create test fixtures")
 	cmd.AddCommand(invoice)
 
 	invoices := &cobra.Command{
@@ -80,69 +85,28 @@ func (p *probeOpts) cmd() *cobra.Command {
 	return cmd
 }
 
-// recordRef is the reference NetSuite uses for related records.
-type recordRef struct {
-	ID      string `json:"id"`
-	RefName string `json:"refName"`
-}
-
 func (p *probeOpts) runInvoice(cmd *cobra.Command, args []string) error {
 	nc, err := p.netsuiteClient()
 	if err != nil {
 		return err
 	}
-	ctx := cmd.Context()
-	id := args[0]
-
-	var inv json.RawMessage
-	if err := nc.GetRecord(ctx, "invoice", id, true, &inv); err != nil {
-		return fmt.Errorf("fetching invoice %s: %w", id, err)
-	}
-	out := map[string]json.RawMessage{"invoice": inv}
-
-	refs := struct {
-		Entity     *recordRef `json:"entity"`
-		Subsidiary *recordRef `json:"subsidiary"`
-	}{}
-	if err := json.Unmarshal(inv, &refs); err != nil {
-		return fmt.Errorf("parsing invoice: %w", err)
-	}
-
-	// Related records are fetched on a best effort basis, as the role may
-	// not have access to them, or the account may not use subsidiaries.
-	related := []struct {
-		key, recordType string
-		ref             *recordRef
-	}{
-		{"customer", "customer", refs.Entity},
-		{"subsidiary", "subsidiary", refs.Subsidiary},
-	}
-	for _, r := range related {
-		if r.ref == nil || r.ref.ID == "" {
-			continue
-		}
-		var data json.RawMessage
-		if err := nc.GetRecord(ctx, r.recordType, r.ref.ID, true, &data); err != nil {
-			cmd.PrintErrf("warning: fetching %s %s: %v\n", r.recordType, r.ref.ID, err)
-			continue
-		}
-		out[r.key] = data
-	}
-
-	if p.outDir == "" {
-		return writeJSON(cmd, out)
-	}
-	if err := os.MkdirAll(p.outDir, 0o755); err != nil {
+	b, err := goblnetsuite.FetchInvoice(cmd.Context(), nc, args[0])
+	if err != nil {
 		return err
 	}
-	for k, v := range out {
-		fn := filepath.Join(p.outDir, fmt.Sprintf("invoice_%s_%s.json", id, k))
-		if err := saveJSON(fn, v); err != nil {
+	if p.convert {
+		return convertBundle(cmd, b, p.outFile)
+	}
+	data, err := json.Marshal(b)
+	if err != nil {
+		return err
+	}
+	if p.stripLinks {
+		if data, err = stripLinks(data); err != nil {
 			return err
 		}
-		cmd.PrintErrf("saved %s\n", fn)
 	}
-	return nil
+	return output(cmd, p.outFile, data)
 }
 
 func (p *probeOpts) runInvoices(cmd *cobra.Command, _ []string) error {
@@ -204,14 +168,44 @@ func writeJSON(cmd *cobra.Command, data any) error {
 	return enc.Encode(data)
 }
 
-func saveJSON(fn string, data json.RawMessage) error {
+// output writes indented JSON data to the file, or stdout if empty.
+func output(cmd *cobra.Command, file string, data []byte) error {
+	var buf bytes.Buffer
+	if err := json.Indent(&buf, data, "", "  "); err != nil {
+		return err
+	}
+	buf.WriteByte('\n')
+	if file == "" {
+		_, err := cmd.OutOrStdout().Write(buf.Bytes())
+		return err
+	}
+	if err := os.WriteFile(file, buf.Bytes(), 0o644); err != nil {
+		return err
+	}
+	cmd.PrintErrf("saved %s\n", file)
+	return nil
+}
+
+// stripLinks removes all "links" properties from JSON data.
+func stripLinks(data []byte) ([]byte, error) {
 	var v any
 	if err := json.Unmarshal(data, &v); err != nil {
-		return err
+		return nil, err
 	}
-	out, err := json.MarshalIndent(v, "", "  ")
-	if err != nil {
-		return err
+	var strip func(v any)
+	strip = func(v any) {
+		switch t := v.(type) {
+		case map[string]any:
+			delete(t, "links")
+			for _, c := range t {
+				strip(c)
+			}
+		case []any:
+			for _, c := range t {
+				strip(c)
+			}
+		}
 	}
-	return os.WriteFile(fn, append(out, '\n'), 0o644)
+	strip(v)
+	return json.Marshal(v)
 }

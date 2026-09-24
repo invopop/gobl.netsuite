@@ -6,12 +6,68 @@ Copyright [Invopop Ltd.](https://invopop.com) 2026. Released publicly under the 
 
 ## Status
 
-Early development. The REST client and a `probe` command for exploring account data are available; conversion to GOBL is not yet implemented.
+Early development. NetSuite invoices can be converted into GOBL invoices for accounts that:
+
+- use **legacy tax** (a tax code per line) rather than SuiteTax,
+- are **OneWorld**, as the supplier is taken from the invoice's subsidiary.
+
+Header discounts, shipping costs, and discount, markup or payment lines are not converted yet. They are reported as unmapped, and will cause the totals check to fail.
 
 ## Packages
 
-- `github.com/invopop/gobl.netsuite` - conversion between NetSuite records and GOBL (coming soon).
+- `github.com/invopop/gobl.netsuite` - conversion between NetSuite records and GOBL.
 - `github.com/invopop/gobl.netsuite/client` - NetSuite REST web services client supporting the record and SuiteQL APIs.
+
+## Usage
+
+### Go Package
+
+Conversion works on a `Bundle`: the raw NetSuite invoice record, plus the customer, subsidiary, currency and tax code records it refers to. Records are kept exactly as returned by the REST API, including custom fields.
+
+```go
+nc, _ := client.New(accountID, &client.TBA{ /* credentials */ })
+
+b, err := goblnetsuite.FetchInvoice(ctx, nc, "1234")
+if err != nil {
+	return err
+}
+
+res, err := goblnetsuite.FromInvoice(b)
+if err != nil {
+	return err
+}
+
+// Apply any mappings to res.Invoice here, then calculate and validate.
+env, err := gobl.Envelop(res.Invoice)
+if err != nil {
+	return err
+}
+if err := env.Calculate(); err != nil {
+	return err
+}
+if err := env.Validate(); err != nil {
+	return err
+}
+
+// Compare the GOBL totals with those calculated by NetSuite.
+if err := res.CheckTotals(); err != nil {
+	return err
+}
+```
+
+The `Result` also provides:
+
+- `Source`: the bundle the invoice was converted from.
+- `SourceLines`: the raw NetSuite item line for each GOBL line, in the same order, as some NetSuite lines (e.g. subtotals) do not produce a GOBL line.
+- `Unmapped`: source data that was not converted, such as custom fields (`custbody*`, `custcol*`) or unsupported line types.
+
+### Examples
+
+`examples/netsuite` contains bundles taken from a test account, with links removed to anonymise the account. The expected GOBL output for each is in `examples/netsuite/out`, and is regenerated with:
+
+```bash
+go test -run TestExamples -update
+```
 
 ## NetSuite Setup
 
@@ -71,9 +127,15 @@ Copy `.env.example` to `.env` and fill in the credentials, then:
 # List recently modified invoices
 go run ./cmd/gobl.netsuite probe invoices
 
-# Fetch an invoice with its customer and subsidiary records
-go run ./cmd/gobl.netsuite probe invoice 1234
-go run ./cmd/gobl.netsuite probe invoice 1234 -o probe/
+# Fetch an invoice bundle, or convert it directly into GOBL
+go run ./cmd/gobl.netsuite probe invoice 1234 -o probe/invoice_1234.json
+go run ./cmd/gobl.netsuite probe invoice 1234 --convert
+
+# Create a new example fixture
+go run ./cmd/gobl.netsuite probe invoice 1234 --strip-links -o examples/netsuite/invoice_new.json
+
+# Convert a bundle file into a GOBL envelope
+go run ./cmd/gobl.netsuite convert examples/netsuite/invoice_basic.json
 
 # Run any SuiteQL query
 go run ./cmd/gobl.netsuite probe query "SELECT id, name FROM subsidiary"

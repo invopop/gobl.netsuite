@@ -394,25 +394,27 @@
       "refName": "Standard Fiscal Calendar"
     }
   },
-  "currency": {
-    "currencyPrecision": 2,
-    "displaySymbol": "€",
-    "exchangeRate": 1.0,
-    "formatSample": "€1.234,56",
-    "id": "1",
-    "isBaseCurrency": true,
-    "isInactive": false,
-    "lastModifiedDate": "2026-09-23T13:08:00Z",
-    "locale": {
-      "id": "es_ES_EURO",
-      "refName": "Spain (Spanish EURO)"
-    },
-    "name": "ESP",
-    "overrideCurrencyFormat": false,
-    "symbol": "EUR",
-    "symbolPlacement": {
+  "currencies": {
+    "1": {
+      "currencyPrecision": 2,
+      "displaySymbol": "€",
+      "exchangeRate": 1.0,
+      "formatSample": "€1.234,56",
       "id": "1",
-      "refName": "Before Number"
+      "isBaseCurrency": true,
+      "isInactive": false,
+      "lastModifiedDate": "2026-09-23T13:08:00Z",
+      "locale": {
+        "id": "es_ES_EURO",
+        "refName": "Spain (Spanish EURO)"
+      },
+      "name": "ESP",
+      "overrideCurrencyFormat": false,
+      "symbol": "EUR",
+      "symbolPlacement": {
+        "id": "1",
+        "refName": "Before Number"
+      }
     }
   },
   "taxCodes": {
