@@ -139,7 +139,7 @@ func (p *probeOpts) runInvoice(cmd *cobra.Command, args []string) error {
 
 func (p *probeOpts) runInvoices(cmd *cobra.Command, _ []string) error {
 	sql := fmt.Sprintf(`SELECT id, tranid, trandate, BUILTIN.DF(entity) AS customer,
-		BUILTIN.DF(subsidiary) AS subsidiary, BUILTIN.DF(currency) AS currency,
+		BUILTIN.DF(currency) AS currency,
 		foreigntotal, BUILTIN.DF(status) AS status, lastmodifieddate
 		FROM transaction WHERE type = '%s' ORDER BY lastmodifieddate DESC`,
 		strings.ReplaceAll(p.txType, "'", "''"))
