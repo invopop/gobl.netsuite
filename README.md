@@ -6,16 +6,18 @@ Copyright [Invopop Ltd.](https://invopop.com) 2026. Released publicly under the 
 
 ## Status
 
-Early development. NetSuite invoices can be converted into GOBL invoices for accounts that:
+Early development. NetSuite invoices and credit memos can be converted into GOBL invoices and credit notes for accounts that:
 
 - use **legacy tax** (a tax code per line) rather than SuiteTax,
 - are **OneWorld**, as the supplier is taken from the invoice's subsidiary.
 
 Discount lines become line discounts when they directly follow a line with the same tax code, and invoice discounts with their own tax code otherwise (e.g. after a subtotal), matching how NetSuite taxes them. Header discounts are shared between tax codes in proportion to their net amounts, as NetSuite does. Totals use GOBL's `currency` rounding, as NetSuite rounds line amounts and the tax of each rate before summing.
 
-Not converted yet, reported as unmapped and so causing the totals check to fail: shipping costs, markup and payment lines, and discounts applied after tax. Credit memos are not supported yet.
+Credit memos refer to the invoices they were created from (`createdFrom`) or applied to (`apply`) as preceding documents. A credit memo with neither is reported as unmapped, as some regimes require the preceding document.
 
-**Known difference:** with a header discount across several tax rates, NetSuite rounds the tax of the lines and of the discount separately, so its tax total can differ by a cent per rate from the tax of the net base calculated by GOBL. See `examples/netsuite/pending`.
+Not converted yet, reported as unmapped and so causing the totals check to fail: shipping costs, markup and payment lines, and discounts applied after tax.
+
+**Header discount rounding:** with a header discount across several tax rates, NetSuite rounds the tax of the lines and of the discount separately, so its tax total can differ by up to a cent per rate from the tax of the net base calculated by GOBL. `CheckTotals` accepts these differences, reporting them in `Result.Warnings`.
 
 ## Packages
 
@@ -26,17 +28,17 @@ Not converted yet, reported as unmapped and so causing the totals check to fail:
 
 ### Go Package
 
-Conversion works on a `Bundle`: the raw NetSuite invoice record, plus the customer, subsidiary, currency and tax code records it refers to. Records are kept exactly as returned by the REST API, including custom fields.
+Conversion works on a `Bundle`: the raw NetSuite transaction record, plus the customer, subsidiary, currency and tax code records it refers to, and for credit memos the related invoices. Records are kept exactly as returned by the REST API, including custom fields.
 
 ```go
 nc, _ := client.New(accountID, &client.TBA{ /* credentials */ })
 
-b, err := goblnetsuite.FetchInvoice(ctx, nc, "1234")
+b, err := goblnetsuite.FetchInvoice(ctx, nc, "1234") // or FetchCreditMemo
 if err != nil {
 	return err
 }
 
-res, err := goblnetsuite.FromInvoice(b)
+res, err := goblnetsuite.Convert(b) // or FromInvoice, FromCreditMemo
 if err != nil {
 	return err
 }
@@ -64,6 +66,7 @@ The `Result` also provides:
 - `Source`: the bundle the invoice was converted from.
 - `SourceLines`: the raw NetSuite item line for each GOBL line, in the same order, as some NetSuite lines (e.g. subtotals) do not produce a GOBL line.
 - `Unmapped`: source data that was not converted, such as custom fields (`custbody*`, `custcol*`) or unsupported line types.
+- `Warnings`: differences with NetSuite's totals accepted by `CheckTotals`.
 
 ### Examples
 
@@ -131,15 +134,17 @@ Copy `.env.example` to `.env` and fill in the credentials, then:
 # List recently modified invoices
 go run ./cmd/gobl.netsuite probe invoices
 
-# Fetch an invoice bundle, or convert it directly into GOBL
+# Fetch an invoice or credit memo bundle, or convert it directly into GOBL
 go run ./cmd/gobl.netsuite probe invoice 1234 -o probe/invoice_1234.json
-go run ./cmd/gobl.netsuite probe invoice 1234 --convert
+go run ./cmd/gobl.netsuite probe creditmemo 1235 --convert
 
 # Create a new example fixture
 go run ./cmd/gobl.netsuite probe invoice 1234 --strip-links -o examples/netsuite/invoice_new.json
 
-# Create a record from JSON, e.g. test data, printing its internal ID
+# Create or update test data, printing the internal ID of new records
 go run ./cmd/gobl.netsuite probe create invoice invoice.json
+go run ./cmd/gobl.netsuite probe transform invoice 1234 creditmemo credit.json
+go run ./cmd/gobl.netsuite probe update creditmemo 1235 --replace item lines.json
 
 # Convert a bundle file into a GOBL envelope
 go run ./cmd/gobl.netsuite convert examples/netsuite/invoice_basic.json

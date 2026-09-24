@@ -1,169 +1,5 @@
 {
-  "currencies": {
-    "1": {
-      "currencyPrecision": 2,
-      "displaySymbol": "€",
-      "exchangeRate": 1,
-      "formatSample": "€1.234,56",
-      "id": "1",
-      "isBaseCurrency": true,
-      "isInactive": false,
-      "lastModifiedDate": "2026-09-23T13:08:00Z",
-      "locale": {
-        "id": "es_ES_EURO",
-        "refName": "Spain (Spanish EURO)"
-      },
-      "name": "ESP",
-      "overrideCurrencyFormat": false,
-      "symbol": "EUR",
-      "symbolPlacement": {
-        "id": "1",
-        "refName": "Before Number"
-      }
-    }
-  },
-  "customer": {
-    "accessRole": {
-      "id": "14",
-      "refName": "Customer Centre"
-    },
-    "addressBook": {
-      "items": [
-        {
-          "addressBookAddress": {
-            "addr1": "Paseo de Pereda 9-12",
-            "addrText": "Banco Santander, S.A.\nPaseo de Pereda 9-12\nSantander  39004\nSpain",
-            "addressee": "Banco Santander, S.A.",
-            "city": "Santander",
-            "country": {
-              "id": "ES",
-              "refName": "Spain"
-            },
-            "override": false,
-            "zip": "39004"
-          },
-          "addressBookAddress_text": "Banco Santander, S.A.\nPaseo de Pereda 9-12\nSantander  39004\nSpain",
-          "addressId": "2",
-          "defaultBilling": true,
-          "defaultShipping": true,
-          "id": 2,
-          "internalId": 2,
-          "isResidential": false,
-          "label": "Paseo de Pereda 9-12"
-        }
-      ],
-      "totalResults": 1
-    },
-    "aging": 4884.03,
-    "aging1": 0,
-    "aging2": 0,
-    "aging3": 0,
-    "aging4": 0,
-    "alcoholRecipientType": {
-      "id": "CONSUMER",
-      "refName": "Consumer"
-    },
-    "balance": 4884.03,
-    "companyName": "Banco Santander, S.A.",
-    "contactList": {
-      "count": 0,
-      "hasMore": false,
-      "items": [],
-      "offset": 0,
-      "totalResults": 0
-    },
-    "contactRoles": {
-      "items": [],
-      "totalResults": 0
-    },
-    "creditHoldOverride": {
-      "id": "AUTO",
-      "refName": "Auto"
-    },
-    "currency": {
-      "id": "1",
-      "refName": "ESP"
-    },
-    "currencyList": {
-      "items": [
-        {
-          "balance": 4884.03,
-          "currency": {
-            "id": "1",
-            "refName": "ESP"
-          },
-          "depositBalance": 0,
-          "displaySymbol": "€",
-          "overdueBalance": 0,
-          "overrideCurrencyFormat": false,
-          "symbolPlacement": {
-            "id": "1",
-            "refName": "Before Number"
-          },
-          "unbilledOrders": 0
-        }
-      ],
-      "totalResults": 1
-    },
-    "customForm": {
-      "id": "-2",
-      "refName": "Standard Customer Form"
-    },
-    "dateCreated": "2026-09-23T09:21:00Z",
-    "daysOverdue": 0,
-    "defaultAddress": "Banco Santander, S.A.\nPaseo de Pereda 9-12\nSantander  39004\nSpain",
-    "depositBalance": 0,
-    "emailPreference": {
-      "id": "DEFAULT",
-      "refName": "Default"
-    },
-    "emailTransactions": false,
-    "entityId": "2 Banco Santander, S.A.",
-    "entityStatus": {
-      "id": "13",
-      "refName": "CUSTOMER-Closed Won"
-    },
-    "faxTransactions": false,
-    "giveAccess": false,
-    "groupPricing": {
-      "items": [],
-      "totalResults": 0
-    },
-    "id": "6",
-    "isBudgetApproved": false,
-    "isInactive": false,
-    "isPerson": false,
-    "itemPricing": {
-      "items": [],
-      "totalResults": 0
-    },
-    "lastModifiedDate": "2026-09-23T09:21:00Z",
-    "monthlyClosing": {
-      "id": "31",
-      "refName": "End of the Month"
-    },
-    "overdueBalance": 0,
-    "printTransactions": false,
-    "receivablesAccount": {
-      "id": "-10",
-      "refName": "Use System Preference"
-    },
-    "sendEmail": false,
-    "shipComplete": false,
-    "shippingCarrier": {
-      "id": "nonups",
-      "refName": "FedEx/USPS/More"
-    },
-    "subsidiary": {
-      "id": "3",
-      "refName": "Invopop SL"
-    },
-    "taxExempt": true,
-    "taxable": false,
-    "unbilledOrders": 0,
-    "vatRegNumber": "ESA39000013"
-  },
-  "invoice": {
+  "transaction": {
     "amountPaid": 0,
     "amountRemaining": 3831.67,
     "amountRemainingTotalBox": 3831.67,
@@ -389,6 +225,170 @@
       "refName": "custinvc"
     },
     "vatRegNum": "ESA39000013"
+  },
+  "currencies": {
+    "1": {
+      "currencyPrecision": 2,
+      "displaySymbol": "€",
+      "exchangeRate": 1,
+      "formatSample": "€1.234,56",
+      "id": "1",
+      "isBaseCurrency": true,
+      "isInactive": false,
+      "lastModifiedDate": "2026-09-23T13:08:00Z",
+      "locale": {
+        "id": "es_ES_EURO",
+        "refName": "Spain (Spanish EURO)"
+      },
+      "name": "ESP",
+      "overrideCurrencyFormat": false,
+      "symbol": "EUR",
+      "symbolPlacement": {
+        "id": "1",
+        "refName": "Before Number"
+      }
+    }
+  },
+  "customer": {
+    "accessRole": {
+      "id": "14",
+      "refName": "Customer Centre"
+    },
+    "addressBook": {
+      "items": [
+        {
+          "addressBookAddress": {
+            "addr1": "Paseo de Pereda 9-12",
+            "addrText": "Banco Santander, S.A.\nPaseo de Pereda 9-12\nSantander  39004\nSpain",
+            "addressee": "Banco Santander, S.A.",
+            "city": "Santander",
+            "country": {
+              "id": "ES",
+              "refName": "Spain"
+            },
+            "override": false,
+            "zip": "39004"
+          },
+          "addressBookAddress_text": "Banco Santander, S.A.\nPaseo de Pereda 9-12\nSantander  39004\nSpain",
+          "addressId": "2",
+          "defaultBilling": true,
+          "defaultShipping": true,
+          "id": 2,
+          "internalId": 2,
+          "isResidential": false,
+          "label": "Paseo de Pereda 9-12"
+        }
+      ],
+      "totalResults": 1
+    },
+    "aging": 4884.03,
+    "aging1": 0,
+    "aging2": 0,
+    "aging3": 0,
+    "aging4": 0,
+    "alcoholRecipientType": {
+      "id": "CONSUMER",
+      "refName": "Consumer"
+    },
+    "balance": 4884.03,
+    "companyName": "Banco Santander, S.A.",
+    "contactList": {
+      "count": 0,
+      "hasMore": false,
+      "items": [],
+      "offset": 0,
+      "totalResults": 0
+    },
+    "contactRoles": {
+      "items": [],
+      "totalResults": 0
+    },
+    "creditHoldOverride": {
+      "id": "AUTO",
+      "refName": "Auto"
+    },
+    "currency": {
+      "id": "1",
+      "refName": "ESP"
+    },
+    "currencyList": {
+      "items": [
+        {
+          "balance": 4884.03,
+          "currency": {
+            "id": "1",
+            "refName": "ESP"
+          },
+          "depositBalance": 0,
+          "displaySymbol": "€",
+          "overdueBalance": 0,
+          "overrideCurrencyFormat": false,
+          "symbolPlacement": {
+            "id": "1",
+            "refName": "Before Number"
+          },
+          "unbilledOrders": 0
+        }
+      ],
+      "totalResults": 1
+    },
+    "customForm": {
+      "id": "-2",
+      "refName": "Standard Customer Form"
+    },
+    "dateCreated": "2026-09-23T09:21:00Z",
+    "daysOverdue": 0,
+    "defaultAddress": "Banco Santander, S.A.\nPaseo de Pereda 9-12\nSantander  39004\nSpain",
+    "depositBalance": 0,
+    "emailPreference": {
+      "id": "DEFAULT",
+      "refName": "Default"
+    },
+    "emailTransactions": false,
+    "entityId": "2 Banco Santander, S.A.",
+    "entityStatus": {
+      "id": "13",
+      "refName": "CUSTOMER-Closed Won"
+    },
+    "faxTransactions": false,
+    "giveAccess": false,
+    "groupPricing": {
+      "items": [],
+      "totalResults": 0
+    },
+    "id": "6",
+    "isBudgetApproved": false,
+    "isInactive": false,
+    "isPerson": false,
+    "itemPricing": {
+      "items": [],
+      "totalResults": 0
+    },
+    "lastModifiedDate": "2026-09-23T09:21:00Z",
+    "monthlyClosing": {
+      "id": "31",
+      "refName": "End of the Month"
+    },
+    "overdueBalance": 0,
+    "printTransactions": false,
+    "receivablesAccount": {
+      "id": "-10",
+      "refName": "Use System Preference"
+    },
+    "sendEmail": false,
+    "shipComplete": false,
+    "shippingCarrier": {
+      "id": "nonups",
+      "refName": "FedEx/USPS/More"
+    },
+    "subsidiary": {
+      "id": "3",
+      "refName": "Invopop SL"
+    },
+    "taxExempt": true,
+    "taxable": false,
+    "unbilledOrders": 0,
+    "vatRegNumber": "ESA39000013"
   },
   "subsidiary": {
     "checklayout": {

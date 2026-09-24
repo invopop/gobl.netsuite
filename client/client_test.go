@@ -98,6 +98,32 @@ func TestCreateRecord(t *testing.T) {
 	assert.Equal(t, "99", id)
 }
 
+func TestUpdateRecord(t *testing.T) {
+	nc := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPatch, r.Method)
+		assert.Equal(t, "/services/rest/record/v1/creditmemo/12", r.URL.Path)
+		assert.Equal(t, "item", r.URL.Query().Get("replace"))
+		body, _ := io.ReadAll(r.Body)
+		assert.JSONEq(t, `{"memo":"x"}`, string(body))
+		w.WriteHeader(http.StatusNoContent)
+	})
+	require.NoError(t, nc.UpdateRecord(t.Context(), "creditmemo", "12", map[string]string{"memo": "x"}, "item"))
+}
+
+func TestTransformRecord(t *testing.T) {
+	nc := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "/services/rest/record/v1/invoice/1/!transform/creditmemo", r.URL.Path)
+		body, _ := io.ReadAll(r.Body)
+		assert.JSONEq(t, `{}`, string(body))
+		w.Header().Set("Location", "https://x/services/rest/record/v1/creditmemo/12")
+		w.WriteHeader(http.StatusNoContent)
+	})
+	id, err := nc.TransformRecord(t.Context(), "invoice", "1", "creditmemo", nil)
+	require.NoError(t, err)
+	assert.Equal(t, "12", id)
+}
+
 func TestErrors(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		nc := newTestClient(t, func(w http.ResponseWriter, _ *http.Request) {

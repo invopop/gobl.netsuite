@@ -29,23 +29,32 @@ type Address struct {
 	Country   *Ref   `json:"country,omitempty"`
 }
 
-// Invoice is a NetSuite invoice record (type "invoice").
-type Invoice struct {
-	ID             string        `json:"id"`
-	TranID         string        `json:"tranId"`
-	TranDate       string        `json:"tranDate"`
-	DueDate        string        `json:"dueDate,omitempty"`
-	Entity         *Ref          `json:"entity,omitempty"`
-	Subsidiary     *Ref          `json:"subsidiary,omitempty"`
-	Currency       *Ref          `json:"currency,omitempty"`
-	ExchangeRate   json.Number   `json:"exchangeRate,omitempty"`
-	Terms          *Ref          `json:"terms,omitempty"`
-	OtherRefNum    string        `json:"otherRefNum,omitempty"`
-	Memo           string        `json:"memo,omitempty"`
-	VATRegNum      string        `json:"vatRegNum,omitempty"`
-	Email          string        `json:"email,omitempty"`
-	BillingAddress *Address      `json:"billingAddress,omitempty"`
-	Item           *InvoiceItems `json:"item,omitempty"`
+// Transaction is a NetSuite sales transaction record, such as an invoice
+// (record type "invoice") or credit memo ("creditmemo"), which share the
+// fields used by the conversion.
+type Transaction struct {
+	ID             string            `json:"id"`
+	Type           *Ref              `json:"type,omitempty"`
+	TranID         string            `json:"tranId"`
+	TranDate       string            `json:"tranDate"`
+	DueDate        string            `json:"dueDate,omitempty"`
+	Entity         *Ref              `json:"entity,omitempty"`
+	Subsidiary     *Ref              `json:"subsidiary,omitempty"`
+	Currency       *Ref              `json:"currency,omitempty"`
+	ExchangeRate   json.Number       `json:"exchangeRate,omitempty"`
+	Terms          *Ref              `json:"terms,omitempty"`
+	OtherRefNum    string            `json:"otherRefNum,omitempty"`
+	Memo           string            `json:"memo,omitempty"`
+	VATRegNum      string            `json:"vatRegNum,omitempty"`
+	Email          string            `json:"email,omitempty"`
+	BillingAddress *Address          `json:"billingAddress,omitempty"`
+	Item           *TransactionItems `json:"item,omitempty"`
+
+	// CreatedFrom is the transaction this one was created from, such as the
+	// invoice a credit memo was created from.
+	CreatedFrom *Ref `json:"createdFrom,omitempty"`
+	// Apply lists the transactions a credit memo can be applied to.
+	Apply *ApplyList `json:"apply,omitempty"`
 
 	// Subtotal is the sum of the lines, including discount lines, but
 	// before the header discount in DiscountTotal (a negative amount).
@@ -57,13 +66,13 @@ type Invoice struct {
 	Total         json.Number `json:"total,omitempty"`
 }
 
-// InvoiceItems is the expanded item sublist of an invoice.
-type InvoiceItems struct {
-	Items []*InvoiceItem `json:"items"`
+// TransactionItems is the expanded item sublist of a transaction.
+type TransactionItems struct {
+	Items []*TransactionItem `json:"items"`
 }
 
-// InvoiceItem is a single line of an invoice's item sublist.
-type InvoiceItem struct {
+// TransactionItem is a single line of a transaction's item sublist.
+type TransactionItem struct {
 	Line        int         `json:"line"`
 	Item        *Ref        `json:"item,omitempty"`
 	ItemType    *Ref        `json:"itemType,omitempty"`
@@ -74,6 +83,21 @@ type InvoiceItem struct {
 	TaxCode     *Ref        `json:"taxCode,omitempty"`
 	TaxRate1    json.Number `json:"taxRate1,omitempty"`
 	Tax1Amt     json.Number `json:"tax1Amt,omitempty"`
+}
+
+// ApplyList is the expanded apply sublist of a credit memo.
+type ApplyList struct {
+	Items []*Apply `json:"items"`
+}
+
+// Apply is a transaction a credit memo may be applied to, where Apply is
+// true when it has been.
+type Apply struct {
+	Doc    *Ref        `json:"doc,omitempty"`
+	Apply  bool        `json:"apply"`
+	Type   string      `json:"type,omitempty"`
+	RefNum string      `json:"refNum,omitempty"`
+	Amount json.Number `json:"amount,omitempty"`
 }
 
 // Customer is a NetSuite customer record.

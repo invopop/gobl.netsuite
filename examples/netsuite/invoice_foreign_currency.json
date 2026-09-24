@@ -1,190 +1,5 @@
 {
-  "currencies": {
-    "1": {
-      "currencyPrecision": 2,
-      "displaySymbol": "€",
-      "exchangeRate": 1,
-      "formatSample": "€1.234,56",
-      "id": "1",
-      "isBaseCurrency": true,
-      "isInactive": false,
-      "lastModifiedDate": "2026-09-23T13:08:00Z",
-      "locale": {
-        "id": "es_ES_EURO",
-        "refName": "Spain (Spanish EURO)"
-      },
-      "name": "ESP",
-      "overrideCurrencyFormat": false,
-      "symbol": "EUR",
-      "symbolPlacement": {
-        "id": "1",
-        "refName": "Before Number"
-      }
-    },
-    "2": {
-      "currencyPrecision": 2,
-      "displaySymbol": "$",
-      "exchangeRate": 1.101,
-      "formatSample": "$1,234.56",
-      "id": "2",
-      "isBaseCurrency": false,
-      "isInactive": false,
-      "lastModifiedDate": "2026-08-30T17:05:00Z",
-      "locale": {
-        "id": "en_US",
-        "refName": "United States (English)"
-      },
-      "name": "US Dollar",
-      "overrideCurrencyFormat": false,
-      "symbol": "USD",
-      "symbolPlacement": {
-        "id": "1",
-        "refName": "Before Number"
-      }
-    }
-  },
-  "customer": {
-    "accessRole": {
-      "id": "14",
-      "refName": "Customer Centre"
-    },
-    "addressBook": {
-      "items": [
-        {
-          "addressBookAddress": {
-            "addr1": "354 Oyster Point Blvd",
-            "addrText": "Stripe, Inc.\n354 Oyster Point Blvd\nSouth San Francisco CA 94080\nUnited States",
-            "addressee": "Stripe, Inc.",
-            "city": "South San Francisco",
-            "country": {
-              "id": "US",
-              "refName": "United States"
-            },
-            "override": false,
-            "state": "CA",
-            "zip": "94080"
-          },
-          "addressBookAddress_text": "Stripe, Inc.\n354 Oyster Point Blvd\nSouth San Francisco CA 94080\nUnited States",
-          "addressId": "8",
-          "defaultBilling": true,
-          "defaultShipping": true,
-          "id": 8,
-          "internalId": 8,
-          "isResidential": false,
-          "label": "South San Francisco"
-        }
-      ],
-      "totalResults": 1
-    },
-    "aging": 2549.83,
-    "aging1": 0,
-    "aging2": 0,
-    "aging3": 0,
-    "aging4": 0,
-    "alcoholRecipientType": {
-      "id": "CONSUMER",
-      "refName": "Consumer"
-    },
-    "balance": 2549.83,
-    "companyName": "Stripe, Inc.",
-    "contactList": {
-      "count": 0,
-      "hasMore": false,
-      "items": [],
-      "offset": 0,
-      "totalResults": 0
-    },
-    "contactRoles": {
-      "items": [],
-      "totalResults": 0
-    },
-    "creditHoldOverride": {
-      "id": "AUTO",
-      "refName": "Auto"
-    },
-    "currency": {
-      "id": "2",
-      "refName": "US Dollar"
-    },
-    "currencyList": {
-      "items": [
-        {
-          "balance": 2549.83,
-          "currency": {
-            "id": "2",
-            "refName": "US Dollar"
-          },
-          "depositBalance": 0,
-          "displaySymbol": "$",
-          "overdueBalance": 0,
-          "overrideCurrencyFormat": false,
-          "symbolPlacement": {
-            "id": "1",
-            "refName": "Before Number"
-          },
-          "unbilledOrders": 0
-        }
-      ],
-      "totalResults": 1
-    },
-    "customForm": {
-      "id": "-2",
-      "refName": "Standard Customer Form"
-    },
-    "dateCreated": "2026-09-24T21:26:00Z",
-    "daysOverdue": 0,
-    "defaultAddress": "Stripe, Inc.\n354 Oyster Point Blvd\nSouth San Francisco CA 94080\nUnited States",
-    "depositBalance": 0,
-    "emailPreference": {
-      "id": "DEFAULT",
-      "refName": "Default"
-    },
-    "emailTransactions": false,
-    "entityId": "5 Stripe, Inc.",
-    "entityStatus": {
-      "id": "13",
-      "refName": "CUSTOMER-Closed Won"
-    },
-    "faxTransactions": false,
-    "giveAccess": false,
-    "groupPricing": {
-      "items": [],
-      "totalResults": 0
-    },
-    "id": "16",
-    "isBudgetApproved": false,
-    "isInactive": false,
-    "isPerson": false,
-    "itemPricing": {
-      "items": [],
-      "totalResults": 0
-    },
-    "lastModifiedDate": "2026-09-24T21:26:00Z",
-    "monthlyClosing": {
-      "id": "31",
-      "refName": "End of the Month"
-    },
-    "overdueBalance": 0,
-    "printTransactions": false,
-    "receivablesAccount": {
-      "id": "-10",
-      "refName": "Use System Preference"
-    },
-    "sendEmail": false,
-    "shipComplete": false,
-    "shippingCarrier": {
-      "id": "nonups",
-      "refName": "FedEx/USPS/More"
-    },
-    "subsidiary": {
-      "id": "3",
-      "refName": "Invopop SL"
-    },
-    "taxExempt": true,
-    "taxable": false,
-    "unbilledOrders": 0
-  },
-  "invoice": {
+  "transaction": {
     "amountPaid": 0,
     "amountRemaining": 2549.83,
     "amountRemainingTotalBox": 2549.83,
@@ -379,6 +194,191 @@
       "id": "custinvc",
       "refName": "custinvc"
     }
+  },
+  "currencies": {
+    "1": {
+      "currencyPrecision": 2,
+      "displaySymbol": "€",
+      "exchangeRate": 1,
+      "formatSample": "€1.234,56",
+      "id": "1",
+      "isBaseCurrency": true,
+      "isInactive": false,
+      "lastModifiedDate": "2026-09-23T13:08:00Z",
+      "locale": {
+        "id": "es_ES_EURO",
+        "refName": "Spain (Spanish EURO)"
+      },
+      "name": "ESP",
+      "overrideCurrencyFormat": false,
+      "symbol": "EUR",
+      "symbolPlacement": {
+        "id": "1",
+        "refName": "Before Number"
+      }
+    },
+    "2": {
+      "currencyPrecision": 2,
+      "displaySymbol": "$",
+      "exchangeRate": 1.101,
+      "formatSample": "$1,234.56",
+      "id": "2",
+      "isBaseCurrency": false,
+      "isInactive": false,
+      "lastModifiedDate": "2026-08-30T17:05:00Z",
+      "locale": {
+        "id": "en_US",
+        "refName": "United States (English)"
+      },
+      "name": "US Dollar",
+      "overrideCurrencyFormat": false,
+      "symbol": "USD",
+      "symbolPlacement": {
+        "id": "1",
+        "refName": "Before Number"
+      }
+    }
+  },
+  "customer": {
+    "accessRole": {
+      "id": "14",
+      "refName": "Customer Centre"
+    },
+    "addressBook": {
+      "items": [
+        {
+          "addressBookAddress": {
+            "addr1": "354 Oyster Point Blvd",
+            "addrText": "Stripe, Inc.\n354 Oyster Point Blvd\nSouth San Francisco CA 94080\nUnited States",
+            "addressee": "Stripe, Inc.",
+            "city": "South San Francisco",
+            "country": {
+              "id": "US",
+              "refName": "United States"
+            },
+            "override": false,
+            "state": "CA",
+            "zip": "94080"
+          },
+          "addressBookAddress_text": "Stripe, Inc.\n354 Oyster Point Blvd\nSouth San Francisco CA 94080\nUnited States",
+          "addressId": "8",
+          "defaultBilling": true,
+          "defaultShipping": true,
+          "id": 8,
+          "internalId": 8,
+          "isResidential": false,
+          "label": "South San Francisco"
+        }
+      ],
+      "totalResults": 1
+    },
+    "aging": 2549.83,
+    "aging1": 0,
+    "aging2": 0,
+    "aging3": 0,
+    "aging4": 0,
+    "alcoholRecipientType": {
+      "id": "CONSUMER",
+      "refName": "Consumer"
+    },
+    "balance": 2549.83,
+    "companyName": "Stripe, Inc.",
+    "contactList": {
+      "count": 0,
+      "hasMore": false,
+      "items": [],
+      "offset": 0,
+      "totalResults": 0
+    },
+    "contactRoles": {
+      "items": [],
+      "totalResults": 0
+    },
+    "creditHoldOverride": {
+      "id": "AUTO",
+      "refName": "Auto"
+    },
+    "currency": {
+      "id": "2",
+      "refName": "US Dollar"
+    },
+    "currencyList": {
+      "items": [
+        {
+          "balance": 2549.83,
+          "currency": {
+            "id": "2",
+            "refName": "US Dollar"
+          },
+          "depositBalance": 0,
+          "displaySymbol": "$",
+          "overdueBalance": 0,
+          "overrideCurrencyFormat": false,
+          "symbolPlacement": {
+            "id": "1",
+            "refName": "Before Number"
+          },
+          "unbilledOrders": 0
+        }
+      ],
+      "totalResults": 1
+    },
+    "customForm": {
+      "id": "-2",
+      "refName": "Standard Customer Form"
+    },
+    "dateCreated": "2026-09-24T21:26:00Z",
+    "daysOverdue": 0,
+    "defaultAddress": "Stripe, Inc.\n354 Oyster Point Blvd\nSouth San Francisco CA 94080\nUnited States",
+    "depositBalance": 0,
+    "emailPreference": {
+      "id": "DEFAULT",
+      "refName": "Default"
+    },
+    "emailTransactions": false,
+    "entityId": "5 Stripe, Inc.",
+    "entityStatus": {
+      "id": "13",
+      "refName": "CUSTOMER-Closed Won"
+    },
+    "faxTransactions": false,
+    "giveAccess": false,
+    "groupPricing": {
+      "items": [],
+      "totalResults": 0
+    },
+    "id": "16",
+    "isBudgetApproved": false,
+    "isInactive": false,
+    "isPerson": false,
+    "itemPricing": {
+      "items": [],
+      "totalResults": 0
+    },
+    "lastModifiedDate": "2026-09-24T21:26:00Z",
+    "monthlyClosing": {
+      "id": "31",
+      "refName": "End of the Month"
+    },
+    "overdueBalance": 0,
+    "printTransactions": false,
+    "receivablesAccount": {
+      "id": "-10",
+      "refName": "Use System Preference"
+    },
+    "sendEmail": false,
+    "shipComplete": false,
+    "shippingCarrier": {
+      "id": "nonups",
+      "refName": "FedEx/USPS/More"
+    },
+    "subsidiary": {
+      "id": "3",
+      "refName": "Invopop SL"
+    },
+    "taxExempt": true,
+    "taxable": false,
+    "unbilledOrders": 0
   },
   "subsidiary": {
     "checklayout": {

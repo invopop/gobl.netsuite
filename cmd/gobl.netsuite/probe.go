@@ -19,6 +19,7 @@ type probeOpts struct {
 	outFile    string
 	convert    bool
 	stripLinks bool
+	replace    []string
 	limit      int
 	txType     string
 }
@@ -36,16 +37,20 @@ func (p *probeOpts) cmd() *cobra.Command {
 			"and NETSUITE_TOKEN_SECRET environment variables, or a .env file.",
 	}
 
-	invoice := &cobra.Command{
-		Use:   "invoice <id>",
-		Short: "Fetch an invoice and the related records needed to convert it, as a bundle",
-		Args:  cobra.ExactArgs(1),
-		RunE:  p.runInvoice,
+	for _, rt := range []string{goblnetsuite.RecordTypeInvoice, goblnetsuite.RecordTypeCreditMemo} {
+		tx := &cobra.Command{
+			Use:   rt + " <id>",
+			Short: "Fetch a " + rt + " and the related records needed to convert it, as a bundle",
+			Args:  cobra.ExactArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				return p.runTransaction(cmd, rt, args[0])
+			},
+		}
+		tx.Flags().StringVarP(&p.outFile, "out", "o", "", "file to write to, instead of stdout")
+		tx.Flags().BoolVar(&p.convert, "convert", false, "convert the bundle into a GOBL envelope")
+		tx.Flags().BoolVar(&p.stripLinks, "strip-links", false, "remove links, which contain the account ID, e.g. to create test fixtures")
+		cmd.AddCommand(tx)
 	}
-	invoice.Flags().StringVarP(&p.outFile, "out", "o", "", "file to write to, instead of stdout")
-	invoice.Flags().BoolVar(&p.convert, "convert", false, "convert the bundle into a GOBL envelope")
-	invoice.Flags().BoolVar(&p.stripLinks, "strip-links", false, "remove links, which contain the account ID, e.g. to create test fixtures")
-	cmd.AddCommand(invoice)
 
 	invoices := &cobra.Command{
 		Use:   "invoices",
@@ -90,15 +95,36 @@ func (p *probeOpts) cmd() *cobra.Command {
 	}
 	cmd.AddCommand(create)
 
+	transform := &cobra.Command{
+		Use:   "transform <record-type> <id> <target-type> [file]",
+		Short: "Create a record from another, e.g. a credit memo from an invoice, printing the new internal ID",
+		Args:  cobra.RangeArgs(3, 4),
+		RunE:  p.runTransform,
+	}
+	cmd.AddCommand(transform)
+
+	update := &cobra.Command{
+		Use:   "update <record-type> <id> [file]",
+		Short: "Update a record's fields from JSON, e.g. to adjust test data",
+		Args:  cobra.RangeArgs(2, 3),
+		RunE:  p.runUpdate,
+	}
+	update.Flags().StringSliceVar(&p.replace, "replace", nil, "sublists to replace entirely, e.g. item")
+	cmd.AddCommand(update)
+
 	return cmd
 }
 
-func (p *probeOpts) runInvoice(cmd *cobra.Command, args []string) error {
+func (p *probeOpts) runTransaction(cmd *cobra.Command, recordType, id string) error {
 	nc, err := p.netsuiteClient()
 	if err != nil {
 		return err
 	}
-	b, err := goblnetsuite.FetchInvoice(cmd.Context(), nc, args[0])
+	fetch := goblnetsuite.FetchInvoice
+	if recordType == goblnetsuite.RecordTypeCreditMemo {
+		fetch = goblnetsuite.FetchCreditMemo
+	}
+	b, err := fetch(cmd.Context(), nc, id)
 	if err != nil {
 		return err
 	}
@@ -175,18 +201,9 @@ func (p *probeOpts) runCreate(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	in := cmd.InOrStdin()
-	if len(args) > 1 && args[1] != "-" {
-		f, err := os.Open(args[1])
-		if err != nil {
-			return err
-		}
-		defer f.Close() //nolint:errcheck
-		in = f
-	}
-	var body json.RawMessage
-	if err := json.NewDecoder(in).Decode(&body); err != nil {
-		return fmt.Errorf("parsing input: %w", err)
+	body, err := readBody(cmd, args[1:], true)
+	if err != nil {
+		return err
 	}
 	id, err := nc.CreateRecord(cmd.Context(), args[0], body)
 	if err != nil {
@@ -194,6 +211,57 @@ func (p *probeOpts) runCreate(cmd *cobra.Command, args []string) error {
 	}
 	cmd.Println(id)
 	return nil
+}
+
+func (p *probeOpts) runTransform(cmd *cobra.Command, args []string) error {
+	nc, err := p.netsuiteClient()
+	if err != nil {
+		return err
+	}
+	body, err := readBody(cmd, args[3:], false)
+	if err != nil {
+		return err
+	}
+	id, err := nc.TransformRecord(cmd.Context(), args[0], args[1], args[2], body)
+	if err != nil {
+		return err
+	}
+	cmd.Println(id)
+	return nil
+}
+
+func (p *probeOpts) runUpdate(cmd *cobra.Command, args []string) error {
+	nc, err := p.netsuiteClient()
+	if err != nil {
+		return err
+	}
+	body, err := readBody(cmd, args[2:], true)
+	if err != nil {
+		return err
+	}
+	return nc.UpdateRecord(cmd.Context(), args[0], args[1], body, p.replace...)
+}
+
+// readBody reads a JSON body from the file in args, or stdin when "-" or,
+// if stdin is the default, when no file is given.
+func readBody(cmd *cobra.Command, args []string, stdin bool) (json.RawMessage, error) {
+	in := cmd.InOrStdin()
+	switch {
+	case len(args) > 0 && args[0] != "-":
+		f, err := os.Open(args[0])
+		if err != nil {
+			return nil, err
+		}
+		defer f.Close() //nolint:errcheck
+		in = f
+	case len(args) == 0 && !stdin:
+		return nil, nil
+	}
+	var body json.RawMessage
+	if err := json.NewDecoder(in).Decode(&body); err != nil {
+		return nil, fmt.Errorf("parsing input: %w", err)
+	}
+	return body, nil
 }
 
 func writeJSON(cmd *cobra.Command, data any) error {

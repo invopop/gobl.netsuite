@@ -88,11 +88,15 @@ func (c *Client) GetRecord(ctx context.Context, recordType, id string, expand bo
 // CreateRecord creates a record of the given type from the body, which is
 // encoded as JSON, and returns the internal ID of the new record.
 func (c *Client) CreateRecord(ctx context.Context, recordType string, body any) (string, error) {
+	return c.post(ctx, fmt.Sprintf("%s/%s", recordPath, url.PathEscape(recordType)), body)
+}
+
+// post sends the body to a path that creates a record, returning its ID.
+func (c *Client) post(ctx context.Context, p string, body any) (string, error) {
 	data, err := json.Marshal(body)
 	if err != nil {
 		return "", err
 	}
-	p := fmt.Sprintf("%s/%s", recordPath, url.PathEscape(recordType))
 	req, err := c.newRequest(ctx, http.MethodPost, p, nil, bytes.NewReader(data))
 	if err != nil {
 		return "", err
@@ -106,9 +110,41 @@ func (c *Client) CreateRecord(ctx context.Context, recordType string, body any) 
 	loc := resp.Header.Get("Location")
 	id := loc[strings.LastIndex(loc, "/")+1:]
 	if id == "" {
-		return "", fmt.Errorf("creating %s: no record location in response", recordType)
+		return "", fmt.Errorf("POST %s: no record location in response", p)
 	}
 	return id, nil
+}
+
+// UpdateRecord updates the fields of a record provided in the body. Sublists
+// named in replace, such as "item", are replaced entirely by those in the
+// body instead of being merged with the existing lines.
+func (c *Client) UpdateRecord(ctx context.Context, recordType, id string, body any, replace ...string) error {
+	data, err := json.Marshal(body)
+	if err != nil {
+		return err
+	}
+	q := url.Values{}
+	if len(replace) > 0 {
+		q.Set("replace", strings.Join(replace, ","))
+	}
+	p := fmt.Sprintf("%s/%s/%s", recordPath, url.PathEscape(recordType), url.PathEscape(id))
+	req, err := c.newRequest(ctx, http.MethodPatch, p, q, bytes.NewReader(data))
+	if err != nil {
+		return err
+	}
+	return c.do(req, nil)
+}
+
+// TransformRecord creates a new record of the target type from an existing
+// record, such as a credit memo from an invoice, returning its internal ID.
+// The body may override fields of the new record, and can be nil.
+func (c *Client) TransformRecord(ctx context.Context, recordType, id, targetType string, body any) (string, error) {
+	if body == nil {
+		body = struct{}{}
+	}
+	p := fmt.Sprintf("%s/%s/%s/!transform/%s", recordPath,
+		url.PathEscape(recordType), url.PathEscape(id), url.PathEscape(targetType))
+	return c.post(ctx, p, body)
 }
 
 // RecordSchema fetches the JSON Schema for a record type from the metadata

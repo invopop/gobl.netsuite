@@ -87,7 +87,7 @@ func TestFromInvoice(t *testing.T) {
 
 	t.Run("foreign currency", func(t *testing.T) {
 		b := basicBundle(t)
-		modify(t, &b.Invoice, func(m map[string]any) {
+		modify(t, &b.Transaction, func(m map[string]any) {
 			m["currency"] = map[string]any{"id": "2", "refName": "US Dollar"}
 			m["exchangeRate"] = 0.9123
 		})
@@ -116,7 +116,7 @@ func TestFromInvoice(t *testing.T) {
 
 	t.Run("customer tax ID from customer record", func(t *testing.T) {
 		b := basicBundle(t)
-		modify(t, &b.Invoice, func(m map[string]any) { delete(m, "vatRegNum") })
+		modify(t, &b.Transaction, func(m map[string]any) { delete(m, "vatRegNum") })
 		modify(t, &b.Customer, func(m map[string]any) { m["vatRegNumber"] = "ESB12345674" })
 		res, err := goblnetsuite.FromInvoice(b)
 		require.NoError(t, err)
@@ -126,7 +126,7 @@ func TestFromInvoice(t *testing.T) {
 
 	t.Run("line without rate", func(t *testing.T) {
 		b := basicBundle(t)
-		modify(t, &b.Invoice, func(m map[string]any) {
+		modify(t, &b.Transaction, func(m map[string]any) {
 			l := lines(m)[0].(map[string]any)
 			delete(l, "rate")
 			delete(l, "quantity")
@@ -141,7 +141,7 @@ func TestFromInvoice(t *testing.T) {
 
 	t.Run("reference number", func(t *testing.T) {
 		b := basicBundle(t)
-		modify(t, &b.Invoice, func(m map[string]any) { m["otherRefNum"] = "PO-1234" })
+		modify(t, &b.Transaction, func(m map[string]any) { m["otherRefNum"] = "PO-1234" })
 		res, err := goblnetsuite.FromInvoice(b)
 		require.NoError(t, err)
 		assert.Equal(t, "PO-1234", res.Invoice.Ordering.Code.String())
@@ -177,7 +177,7 @@ func TestFromInvoiceTaxKeys(t *testing.T) {
 
 	t.Run("zero rate", func(t *testing.T) {
 		b := basicBundle(t)
-		modify(t, &b.Invoice, func(m map[string]any) {
+		modify(t, &b.Transaction, func(m map[string]any) {
 			lines(m)[0].(map[string]any)["taxRate1"] = 0
 		})
 		res, err := goblnetsuite.FromInvoice(b)
@@ -187,7 +187,7 @@ func TestFromInvoiceTaxKeys(t *testing.T) {
 
 	t.Run("line rate overrides tax code rate", func(t *testing.T) {
 		b := basicBundle(t)
-		modify(t, &b.Invoice, func(m map[string]any) {
+		modify(t, &b.Transaction, func(m map[string]any) {
 			lines(m)[0].(map[string]any)["taxRate1"] = 10
 		})
 		res, err := goblnetsuite.FromInvoice(b)
@@ -197,20 +197,20 @@ func TestFromInvoiceTaxKeys(t *testing.T) {
 
 	t.Run("line without tax code", func(t *testing.T) {
 		b := basicBundle(t)
-		modify(t, &b.Invoice, func(m map[string]any) {
+		modify(t, &b.Transaction, func(m map[string]any) {
 			delete(lines(m)[0].(map[string]any), "taxCode")
 		})
 		res, err := goblnetsuite.FromInvoice(b)
 		require.NoError(t, err)
 		assert.Empty(t, res.Invoice.Lines[0].Taxes)
 		require.Len(t, res.Unmapped, 1)
-		assert.Equal(t, "invoice.item.items[0]", res.Unmapped[0].Path)
+		assert.Equal(t, "transaction.item.items[0]", res.Unmapped[0].Path)
 	})
 }
 
 func TestFromInvoiceLineTypes(t *testing.T) {
 	b := basicBundle(t)
-	modify(t, &b.Invoice, func(m map[string]any) {
+	modify(t, &b.Transaction, func(m map[string]any) {
 		base := lines(m)[0].(map[string]any)
 		typed := func(id string) map[string]any {
 			return map[string]any{"itemType": map[string]any{"id": id}}
@@ -232,11 +232,11 @@ func TestFromInvoiceLineTypes(t *testing.T) {
 	assert.Len(t, res.SourceLines, 1)
 	assert.Empty(t, res.Invoice.Discounts)
 	require.Len(t, res.Unmapped, 3)
-	assert.Equal(t, "invoice.item.items[2]", res.Unmapped[0].Path)
+	assert.Equal(t, "transaction.item.items[2]", res.Unmapped[0].Path)
 	assert.Equal(t, "description line not converted", res.Unmapped[0].Message)
-	assert.Equal(t, "invoice.item.items[3]", res.Unmapped[1].Path)
+	assert.Equal(t, "transaction.item.items[3]", res.Unmapped[1].Path)
 	assert.Equal(t, `unsupported item type "Markup"`, res.Unmapped[1].Message)
-	assert.Equal(t, "invoice.item.items[4]", res.Unmapped[2].Path)
+	assert.Equal(t, "transaction.item.items[4]", res.Unmapped[2].Path)
 	assert.Equal(t, "discount line without a tax code not supported", res.Unmapped[2].Message)
 }
 
@@ -244,7 +244,7 @@ func TestFromInvoiceDiscounts(t *testing.T) {
 	t.Run("line discount with a different tax code", func(t *testing.T) {
 		b := loadBundle(t, "examples/netsuite/invoice_line_discount.json")
 		b.TaxCodes["7"] = json.RawMessage(`{"id":"7","rate":10.0,"taxType":{"id":"1","refName":"VAT"}}`)
-		modify(t, &b.Invoice, func(m map[string]any) {
+		modify(t, &b.Transaction, func(m map[string]any) {
 			disc := lines(m)[1].(map[string]any)
 			disc["taxCode"] = map[string]any{"id": "7"}
 			disc["taxRate1"] = 10
@@ -260,7 +260,7 @@ func TestFromInvoiceDiscounts(t *testing.T) {
 
 	t.Run("header discount shared between tax codes", func(t *testing.T) {
 		b := loadBundle(t, "examples/netsuite/invoice_mixed_rates.json")
-		modify(t, &b.Invoice, func(m map[string]any) {
+		modify(t, &b.Transaction, func(m map[string]any) {
 			m["discountItem"] = map[string]any{"id": "17", "refName": "Discount"}
 			m["discountTotal"] = -100
 		})
@@ -283,7 +283,7 @@ func TestFromInvoiceDiscounts(t *testing.T) {
 
 func TestFromInvoiceUnmapped(t *testing.T) {
 	b := basicBundle(t)
-	modify(t, &b.Invoice, func(m map[string]any) {
+	modify(t, &b.Transaction, func(m map[string]any) {
 		m["custbody_project"] = map[string]any{"id": "7", "refName": "Alpha"}
 		m["custbody_empty"] = ""
 		m["shippingCost"] = 12.5
@@ -297,8 +297,8 @@ func TestFromInvoiceUnmapped(t *testing.T) {
 		paths[i] = n.Path
 	}
 	assert.ElementsMatch(t, []string{
-		"invoice.shippingCost",
-		"invoice.custbody_project",
+		"transaction.shippingCost",
+		"transaction.custbody_project",
 		"source_lines[0].custcol_cn_code",
 	}, paths)
 }
@@ -310,13 +310,13 @@ func TestCheckTotals(t *testing.T) {
 		calculate(t, res)
 		require.NoError(t, res.CheckTotals())
 		require.Len(t, res.Warnings, 2)
-		assert.Equal(t, "invoice.taxTotal", res.Warnings[0].Path)
+		assert.Equal(t, "transaction.taxTotal", res.Warnings[0].Path)
 		assert.Contains(t, res.Warnings[0].Message, "netsuite 197.55, gobl 197.54")
 	})
 
 	t.Run("header discount rounding beyond tolerance", func(t *testing.T) {
 		b := loadBundle(t, "examples/netsuite/invoice_header_discount_mixed.json")
-		modify(t, &b.Invoice, func(m map[string]any) {
+		modify(t, &b.Transaction, func(m map[string]any) {
 			// Five tax codes allow up to 0.05.
 			m["taxTotal"] = 197.60
 			m["total"] = 1673.47
@@ -335,7 +335,7 @@ func TestCheckTotals(t *testing.T) {
 
 	t.Run("mismatch", func(t *testing.T) {
 		b := basicBundle(t)
-		modify(t, &b.Invoice, func(m map[string]any) {
+		modify(t, &b.Transaction, func(m map[string]any) {
 			m["taxTotal"] = 600
 			m["total"] = 3600
 		})

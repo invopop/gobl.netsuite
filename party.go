@@ -31,7 +31,7 @@ func newSupplier(sub *Subsidiary) *org.Party {
 
 // newCustomer builds the customer, preferring details on the invoice itself
 // as they may override those of the customer record.
-func newCustomer(inv *Invoice, cus *Customer) *org.Party {
+func newCustomer(inv *Transaction, cus *Customer) *org.Party {
 	p := new(org.Party)
 	if cus != nil {
 		if cus.IsPerson {

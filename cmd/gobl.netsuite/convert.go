@@ -24,8 +24,9 @@ func convert(o *rootOpts) *convertOpts {
 func (c *convertOpts) cmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "convert [infile]",
-		Short: "Convert a NetSuite invoice bundle into a GOBL envelope",
-		Long: "Convert a NetSuite invoice bundle, as produced by `probe invoice`, into a GOBL envelope.\n" +
+		Short: "Convert a NetSuite invoice or credit memo bundle into a GOBL envelope",
+		Long: "Convert a NetSuite bundle, as produced by `probe invoice` or `probe creditmemo`, into a GOBL\n" +
+			"envelope. " +
 			"Reads from stdin if no file is given.",
 		Args: cobra.MaximumNArgs(1),
 		RunE: c.runE,
@@ -59,7 +60,7 @@ func (c *convertOpts) runE(cmd *cobra.Command, args []string) error {
 // about unmapped data are printed to stderr, and an error is returned after
 // the output if the invoice is invalid or its totals differ from NetSuite's.
 func convertBundle(cmd *cobra.Command, b *goblnetsuite.Bundle, outFile string) error {
-	res, err := goblnetsuite.FromInvoice(b)
+	res, err := goblnetsuite.Convert(b)
 	if err != nil {
 		return err
 	}

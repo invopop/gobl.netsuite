@@ -33,7 +33,7 @@ func TestExamples(t *testing.T) {
 	for _, file := range files {
 		name := filepath.Base(file)
 		t.Run(strings.TrimSuffix(name, ".json"), func(t *testing.T) {
-			res, err := goblnetsuite.FromInvoice(loadBundle(t, file))
+			res, err := goblnetsuite.Convert(loadBundle(t, file))
 			require.NoError(t, err)
 
 			// Fixed so the output is stable between runs.

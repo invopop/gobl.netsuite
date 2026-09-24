@@ -1,4 +1,164 @@
 {
+  "transaction": {
+    "amountPaid": 0,
+    "amountRemaining": 1215,
+    "amountRemainingTotalBox": 1215,
+    "billAddress": "SAP SE\nDietmar-Hopp-Allee 16\nWalldorf  69190\nGermany",
+    "billAddressList": {
+      "id": "7",
+      "refName": "Walldorf"
+    },
+    "billingAddress": {
+      "addr1": "Dietmar-Hopp-Allee 16",
+      "addrText": "SAP SE\nDietmar-Hopp-Allee 16\nWalldorf  69190\nGermany",
+      "addressee": "SAP SE",
+      "city": "Walldorf",
+      "country": {
+        "id": "DE",
+        "refName": "Germany"
+      },
+      "override": false,
+      "zip": "69190"
+    },
+    "billingAddress_text": "SAP SE\nDietmar-Hopp-Allee 16\nWalldorf  69190\nGermany",
+    "canHaveStackable": false,
+    "createdDate": "2026-09-24T21:28:00Z",
+    "currency": {
+      "id": "1",
+      "refName": "ESP"
+    },
+    "customForm": {
+      "id": "91",
+      "refName": "Standard Service Invoice"
+    },
+    "discountTotal": 0,
+    "dueDate": "2026-09-24",
+    "email": "invoices@sap.example",
+    "entity": {
+      "id": "15",
+      "refName": "4 SAP SE"
+    },
+    "exchangeRate": 1,
+    "expCost": {
+      "items": [],
+      "totalResults": 0
+    },
+    "expCostDiscPrint": false,
+    "id": "6",
+    "item": {
+      "items": [
+        {
+          "account": {
+            "id": "137",
+            "refName": "137"
+          },
+          "amount": 1215,
+          "excludeFromRateRequest": false,
+          "grossAmt": 1215,
+          "item": {
+            "id": "16",
+            "refName": "NONINV-001 Shipping"
+          },
+          "itemSubtype": {
+            "id": "Sale",
+            "refName": "Sale"
+          },
+          "itemType": {
+            "id": "NonInvtPart",
+            "refName": "NonInvtPart"
+          },
+          "line": 1,
+          "lineUniqueKey": "38",
+          "marginal": false,
+          "price": {
+            "id": "1",
+            "refName": "Base Price"
+          },
+          "printItems": false,
+          "quantity": 25,
+          "rate": 48.6,
+          "rateSchedule": "0\u000525.00",
+          "tax1Amt": 0,
+          "taxCode": {
+            "id": "11",
+            "refName": "VAT:ESSS-ES"
+          },
+          "taxRate1": 0
+        }
+      ],
+      "totalResults": 1
+    },
+    "itemCost": {
+      "items": [],
+      "totalResults": 0
+    },
+    "itemCostDiscPrint": false,
+    "lastModifiedDate": "2026-09-24T21:28:00Z",
+    "memo": "Test: EU intra-community supply",
+    "originator": "restWebServices",
+    "postingPeriod": {
+      "id": "30",
+      "refName": "Sep 2026"
+    },
+    "prevDate": "2026-09-24",
+    "salesEffectiveDate": "2026-09-24",
+    "shipAddress": "SAP SE\nDietmar-Hopp-Allee 16\nWalldorf  69190\nGermany",
+    "shipAddressList": {
+      "id": "7",
+      "refName": "Walldorf"
+    },
+    "shipDate": "2026-09-24",
+    "shipIsResidential": false,
+    "shipOverride": false,
+    "shippingAddress": {
+      "addr1": "Dietmar-Hopp-Allee 16",
+      "addrText": "SAP SE\nDietmar-Hopp-Allee 16\nWalldorf  69190\nGermany",
+      "addressee": "SAP SE",
+      "city": "Walldorf",
+      "country": {
+        "id": "DE",
+        "refName": "Germany"
+      },
+      "override": false,
+      "zip": "69190"
+    },
+    "shippingAddress_text": "SAP SE\nDietmar-Hopp-Allee 16\nWalldorf  69190\nGermany",
+    "source": {
+      "id": "REST Web Services",
+      "refName": "REST Web Services"
+    },
+    "sourceSystem": {
+      "id": "restWebServices",
+      "refName": "REST Web Services"
+    },
+    "status": {
+      "id": "Open",
+      "refName": "Open"
+    },
+    "subsidiary": {
+      "id": "3",
+      "refName": "Invopop SL"
+    },
+    "subtotal": 1215,
+    "taxTotal": 0,
+    "time": {
+      "items": [],
+      "totalResults": 0
+    },
+    "timeDiscPrint": false,
+    "toBeEmailed": false,
+    "toBeFaxed": false,
+    "toBePrinted": false,
+    "total": 1215,
+    "tranDate": "2026-09-24",
+    "tranId": "6",
+    "transactionNumber": "CUSTINVC6",
+    "type": {
+      "id": "custinvc",
+      "refName": "custinvc"
+    },
+    "vatRegNum": "DE143454214"
+  },
   "currencies": {
     "1": {
       "currencyPrecision": 2,
@@ -163,166 +323,6 @@
     "taxable": false,
     "unbilledOrders": 0,
     "vatRegNumber": "DE143454214"
-  },
-  "invoice": {
-    "amountPaid": 0,
-    "amountRemaining": 1215,
-    "amountRemainingTotalBox": 1215,
-    "billAddress": "SAP SE\nDietmar-Hopp-Allee 16\nWalldorf  69190\nGermany",
-    "billAddressList": {
-      "id": "7",
-      "refName": "Walldorf"
-    },
-    "billingAddress": {
-      "addr1": "Dietmar-Hopp-Allee 16",
-      "addrText": "SAP SE\nDietmar-Hopp-Allee 16\nWalldorf  69190\nGermany",
-      "addressee": "SAP SE",
-      "city": "Walldorf",
-      "country": {
-        "id": "DE",
-        "refName": "Germany"
-      },
-      "override": false,
-      "zip": "69190"
-    },
-    "billingAddress_text": "SAP SE\nDietmar-Hopp-Allee 16\nWalldorf  69190\nGermany",
-    "canHaveStackable": false,
-    "createdDate": "2026-09-24T21:28:00Z",
-    "currency": {
-      "id": "1",
-      "refName": "ESP"
-    },
-    "customForm": {
-      "id": "91",
-      "refName": "Standard Service Invoice"
-    },
-    "discountTotal": 0,
-    "dueDate": "2026-09-24",
-    "email": "invoices@sap.example",
-    "entity": {
-      "id": "15",
-      "refName": "4 SAP SE"
-    },
-    "exchangeRate": 1,
-    "expCost": {
-      "items": [],
-      "totalResults": 0
-    },
-    "expCostDiscPrint": false,
-    "id": "6",
-    "item": {
-      "items": [
-        {
-          "account": {
-            "id": "137",
-            "refName": "137"
-          },
-          "amount": 1215,
-          "excludeFromRateRequest": false,
-          "grossAmt": 1215,
-          "item": {
-            "id": "16",
-            "refName": "NONINV-001 Shipping"
-          },
-          "itemSubtype": {
-            "id": "Sale",
-            "refName": "Sale"
-          },
-          "itemType": {
-            "id": "NonInvtPart",
-            "refName": "NonInvtPart"
-          },
-          "line": 1,
-          "lineUniqueKey": "38",
-          "marginal": false,
-          "price": {
-            "id": "1",
-            "refName": "Base Price"
-          },
-          "printItems": false,
-          "quantity": 25,
-          "rate": 48.6,
-          "rateSchedule": "0\u000525.00",
-          "tax1Amt": 0,
-          "taxCode": {
-            "id": "11",
-            "refName": "VAT:ESSS-ES"
-          },
-          "taxRate1": 0
-        }
-      ],
-      "totalResults": 1
-    },
-    "itemCost": {
-      "items": [],
-      "totalResults": 0
-    },
-    "itemCostDiscPrint": false,
-    "lastModifiedDate": "2026-09-24T21:28:00Z",
-    "memo": "Test: EU intra-community supply",
-    "originator": "restWebServices",
-    "postingPeriod": {
-      "id": "30",
-      "refName": "Sep 2026"
-    },
-    "prevDate": "2026-09-24",
-    "salesEffectiveDate": "2026-09-24",
-    "shipAddress": "SAP SE\nDietmar-Hopp-Allee 16\nWalldorf  69190\nGermany",
-    "shipAddressList": {
-      "id": "7",
-      "refName": "Walldorf"
-    },
-    "shipDate": "2026-09-24",
-    "shipIsResidential": false,
-    "shipOverride": false,
-    "shippingAddress": {
-      "addr1": "Dietmar-Hopp-Allee 16",
-      "addrText": "SAP SE\nDietmar-Hopp-Allee 16\nWalldorf  69190\nGermany",
-      "addressee": "SAP SE",
-      "city": "Walldorf",
-      "country": {
-        "id": "DE",
-        "refName": "Germany"
-      },
-      "override": false,
-      "zip": "69190"
-    },
-    "shippingAddress_text": "SAP SE\nDietmar-Hopp-Allee 16\nWalldorf  69190\nGermany",
-    "source": {
-      "id": "REST Web Services",
-      "refName": "REST Web Services"
-    },
-    "sourceSystem": {
-      "id": "restWebServices",
-      "refName": "REST Web Services"
-    },
-    "status": {
-      "id": "Open",
-      "refName": "Open"
-    },
-    "subsidiary": {
-      "id": "3",
-      "refName": "Invopop SL"
-    },
-    "subtotal": 1215,
-    "taxTotal": 0,
-    "time": {
-      "items": [],
-      "totalResults": 0
-    },
-    "timeDiscPrint": false,
-    "toBeEmailed": false,
-    "toBeFaxed": false,
-    "toBePrinted": false,
-    "total": 1215,
-    "tranDate": "2026-09-24",
-    "tranId": "6",
-    "transactionNumber": "CUSTINVC6",
-    "type": {
-      "id": "custinvc",
-      "refName": "custinvc"
-    },
-    "vatRegNum": "DE143454214"
   },
   "subsidiary": {
     "checklayout": {

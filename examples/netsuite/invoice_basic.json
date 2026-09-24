@@ -1,5 +1,5 @@
 {
-  "invoice": {
+  "transaction": {
     "amountPaid": 0,
     "amountRemaining": 3630,
     "amountRemainingTotalBox": 3630,

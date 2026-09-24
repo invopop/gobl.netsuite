@@ -58,7 +58,7 @@ var itemTypesIgnored = []string{
 // taxBase accumulates the net amount of lines sharing a tax code, used to
 // share header discounts between tax codes as NetSuite does.
 type taxBase struct {
-	item   *InvoiceItem // first line with the tax code, to build combos
+	item   *TransactionItem // first line with the tax code, to build combos
 	path   string
 	amount num.Amount
 }
@@ -66,7 +66,7 @@ type taxBase struct {
 // setLines converts the invoice's item sublist into GOBL lines and
 // discounts.
 func (r *Result) setLines(country l10n.TaxCountryCode) error {
-	src := r.records.invoice
+	src := r.records.transaction
 	if src.Item == nil {
 		return nil
 	}
@@ -75,12 +75,12 @@ func (r *Result) setLines(country l10n.TaxCountryCode) error {
 			Items []json.RawMessage `json:"items"`
 		} `json:"item"`
 	}
-	if err := json.Unmarshal(r.Source.Invoice, &raw); err != nil {
+	if err := json.Unmarshal(r.Source.Transaction, &raw); err != nil {
 		return fmt.Errorf("parsing invoice lines: %w", err)
 	}
 
 	var bases []*taxBase
-	addBase := func(path string, it *InvoiceItem, amount num.Amount) {
+	addBase := func(path string, it *TransactionItem, amount num.Amount) {
 		if it.TaxCode == nil || it.TaxCode.ID == "" {
 			return
 		}
@@ -95,11 +95,11 @@ func (r *Result) setLines(country l10n.TaxCountryCode) error {
 
 	// prev is the source and GOBL line directly preceding a discount line,
 	// which the discount applies to.
-	var prev *InvoiceItem
+	var prev *TransactionItem
 	var prevLine *bill.Line
 
 	for i, it := range src.Item.Items {
-		path := fmt.Sprintf("invoice.item.items[%d]", i)
+		path := fmt.Sprintf("transaction.item.items[%d]", i)
 		itemType := ""
 		if it.ItemType != nil {
 			itemType = it.ItemType.ID
@@ -143,7 +143,7 @@ func (r *Result) setLines(country l10n.TaxCountryCode) error {
 	return r.addHeaderDiscount(bases, country)
 }
 
-func (r *Result) newLine(path string, it *InvoiceItem, amount num.Amount, country l10n.TaxCountryCode) (*bill.Line, error) {
+func (r *Result) newLine(path string, it *TransactionItem, amount num.Amount, country l10n.TaxCountryCode) (*bill.Line, error) {
 	line := &bill.Line{
 		Item: &org.Item{
 			Name: firstOf(it.Description, refName(it.Item)),
@@ -182,7 +182,7 @@ func (r *Result) newLine(path string, it *InvoiceItem, amount num.Amount, countr
 // When that code matches the previous line's, it becomes a discount on that
 // line, otherwise, such as after a subtotal, it becomes an invoice discount
 // with the discount line's tax. Returns true if the discount was converted.
-func (r *Result) addDiscount(path string, it *InvoiceItem, amount num.Amount, prev *InvoiceItem, prevLine *bill.Line, country l10n.TaxCountryCode) (bool, error) {
+func (r *Result) addDiscount(path string, it *TransactionItem, amount num.Amount, prev *TransactionItem, prevLine *bill.Line, country l10n.TaxCountryCode) (bool, error) {
 	if !amount.IsNegative() {
 		r.notice(path, "discount line with a positive amount not supported")
 		return false, nil
@@ -219,7 +219,7 @@ func (r *Result) addDiscount(path string, it *InvoiceItem, amount num.Amount, pr
 // it between tax codes in proportion to their net amounts, so one GOBL
 // discount is added per tax code, with the last absorbing any rounding.
 func (r *Result) addHeaderDiscount(bases []*taxBase, country l10n.TaxCountryCode) error {
-	src := r.records.invoice
+	src := r.records.transaction
 	total, err := r.money(src.DiscountTotal)
 	if err != nil {
 		return fmt.Errorf("invoice discountTotal: %w", err)
@@ -228,7 +228,7 @@ func (r *Result) addHeaderDiscount(bases []*taxBase, country l10n.TaxCountryCode
 		return nil
 	}
 	if !total.IsNegative() {
-		r.notice("invoice.discountTotal", "positive header discount not supported")
+		r.notice("transaction.discountTotal", "positive header discount not supported")
 		return nil
 	}
 	total = total.Negate()
@@ -239,7 +239,7 @@ func (r *Result) addHeaderDiscount(bases []*taxBase, country l10n.TaxCountryCode
 		sum = sum.Add(b.amount)
 	}
 	if !sum.IsPositive() {
-		r.notice("invoice.discountTotal", "no taxed lines to share the header discount between")
+		r.notice("transaction.discountTotal", "no taxed lines to share the header discount between")
 		return nil
 	}
 
@@ -267,7 +267,7 @@ func (r *Result) addHeaderDiscount(bases []*taxBase, country l10n.TaxCountryCode
 
 // newTaxCombo determines the line's tax from its tax code, which in legacy
 // tax accounts describes the type of tax and how it applies.
-func (r *Result) newTaxCombo(path string, it *InvoiceItem, country l10n.TaxCountryCode) (*tax.Combo, error) {
+func (r *Result) newTaxCombo(path string, it *TransactionItem, country l10n.TaxCountryCode) (*tax.Combo, error) {
 	if it.TaxCode == nil || it.TaxCode.ID == "" {
 		r.notice(path, "line has no tax code")
 		return nil, nil
@@ -314,7 +314,7 @@ func (r *Result) newTaxCombo(path string, it *InvoiceItem, country l10n.TaxCount
 	return combo, nil
 }
 
-func sameTaxCode(a, b *InvoiceItem) bool {
+func sameTaxCode(a, b *TransactionItem) bool {
 	return a.TaxCode != nil && b.TaxCode != nil && a.TaxCode.ID == b.TaxCode.ID
 }
 
