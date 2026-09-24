@@ -78,6 +78,9 @@ go run ./cmd/gobl.netsuite probe invoice 1234 -o probe/
 # Run any SuiteQL query
 go run ./cmd/gobl.netsuite probe query "SELECT id, name FROM subsidiary"
 
-# GET any path under /services/rest, e.g. the record metadata
-go run ./cmd/gobl.netsuite probe get record/v1/metadata-catalog/invoice
+# Fetch the account specific JSON Schema for a record type
+go run ./cmd/gobl.netsuite probe schema invoice
+
+# GET any path under /services/rest, e.g. a tax code or currency
+go run ./cmd/gobl.netsuite probe get record/v1/salestaxitem/6
 ```

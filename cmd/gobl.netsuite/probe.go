@@ -69,6 +69,14 @@ func (p *probeOpts) cmd() *cobra.Command {
 	}
 	cmd.AddCommand(get)
 
+	schema := &cobra.Command{
+		Use:   "schema <record-type>",
+		Short: "Fetch the account specific JSON Schema for a record type, e.g. invoice",
+		Args:  cobra.ExactArgs(1),
+		RunE:  p.runSchema,
+	}
+	cmd.AddCommand(schema)
+
 	return cmd
 }
 
@@ -173,6 +181,18 @@ func (p *probeOpts) runGet(cmd *cobra.Command, args []string) error {
 	}
 	var data json.RawMessage
 	if err := nc.Get(cmd.Context(), "/services/rest/"+u.Path, u.Query(), &data); err != nil {
+		return err
+	}
+	return writeJSON(cmd, data)
+}
+
+func (p *probeOpts) runSchema(cmd *cobra.Command, args []string) error {
+	nc, err := p.netsuiteClient()
+	if err != nil {
+		return err
+	}
+	var data json.RawMessage
+	if err := nc.RecordSchema(cmd.Context(), args[0], &data); err != nil {
 		return err
 	}
 	return writeJSON(cmd, data)

@@ -85,6 +85,19 @@ func (c *Client) GetRecord(ctx context.Context, recordType, id string, expand bo
 	return c.Get(ctx, p, q, out)
 }
 
+// RecordSchema fetches the JSON Schema for a record type from the metadata
+// catalog, decoding it into out. The schema is specific to the account, so
+// includes any custom fields and reflects the features enabled.
+func (c *Client) RecordSchema(ctx context.Context, recordType string, out any) error {
+	p := fmt.Sprintf("%s/metadata-catalog/%s", recordPath, url.PathEscape(recordType))
+	req, err := c.newRequest(ctx, http.MethodGet, p, nil, nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Accept", "application/schema+json")
+	return c.do(req, out)
+}
+
 // QueryResult is a single page of results from a SuiteQL query.
 type QueryResult struct {
 	Count        int               `json:"count"`
