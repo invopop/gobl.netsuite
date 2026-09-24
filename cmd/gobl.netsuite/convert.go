@@ -88,5 +88,8 @@ func convertBundle(cmd *cobra.Command, b *goblnetsuite.Bundle, outFile string) e
 	if err := res.CheckTotals(); err != nil {
 		errs = append(errs, err)
 	}
+	for _, n := range res.Warnings {
+		cmd.PrintErrf("warning: %s: %s\n", n.Path, n.Message)
+	}
 	return errors.Join(errs...)
 }

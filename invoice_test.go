@@ -304,6 +304,29 @@ func TestFromInvoiceUnmapped(t *testing.T) {
 }
 
 func TestCheckTotals(t *testing.T) {
+	t.Run("header discount rounding", func(t *testing.T) {
+		res, err := goblnetsuite.FromInvoice(loadBundle(t, "examples/netsuite/invoice_header_discount_mixed.json"))
+		require.NoError(t, err)
+		calculate(t, res)
+		require.NoError(t, res.CheckTotals())
+		require.Len(t, res.Warnings, 2)
+		assert.Equal(t, "invoice.taxTotal", res.Warnings[0].Path)
+		assert.Contains(t, res.Warnings[0].Message, "netsuite 197.55, gobl 197.54")
+	})
+
+	t.Run("header discount rounding beyond tolerance", func(t *testing.T) {
+		b := loadBundle(t, "examples/netsuite/invoice_header_discount_mixed.json")
+		modify(t, &b.Invoice, func(m map[string]any) {
+			// Five tax codes allow up to 0.05.
+			m["taxTotal"] = 197.60
+			m["total"] = 1673.47
+		})
+		res, err := goblnetsuite.FromInvoice(b)
+		require.NoError(t, err)
+		calculate(t, res)
+		assert.ErrorContains(t, res.CheckTotals(), "taxTotal: netsuite 197.60, gobl 197.54")
+	})
+
 	t.Run("not calculated", func(t *testing.T) {
 		res, err := goblnetsuite.FromInvoice(basicBundle(t))
 		require.NoError(t, err)
@@ -320,6 +343,6 @@ func TestCheckTotals(t *testing.T) {
 		require.NoError(t, err)
 		calculate(t, res)
 		assert.EqualError(t, res.CheckTotals(),
-			"totals differ from netsuite: taxTotal: netsuite 600, gobl 630.00; total: netsuite 3600, gobl 3630.00")
+			"totals differ from netsuite: taxTotal: netsuite 600.00, gobl 630.00; total: netsuite 3600.00, gobl 3630.00")
 	})
 }

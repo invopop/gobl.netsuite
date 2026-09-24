@@ -42,7 +42,15 @@ type Result struct {
 	// mapping, such as custom fields or unsupported line types.
 	Unmapped []*Notice `json:"unmapped,omitempty"`
 
+	// Warnings lists accepted differences with NetSuite, such as tax
+	// rounding, found by CheckTotals.
+	Warnings []*Notice `json:"warnings,omitempty"`
+
 	records *records
+
+	// headerDiscountRates is the number of tax codes a header discount was
+	// shared between.
+	headerDiscountRates int
 }
 
 // Notice describes a piece of source data that was not converted.
@@ -240,25 +248,42 @@ func (r *Result) CheckTotals() error {
 	if err != nil {
 		return fmt.Errorf("invoice discountTotal: %w", err)
 	}
+	// NetSuite rounds the tax of a header discount separately from the tax
+	// of the lines for each rate, so the tax can differ from GOBL's, which is
+	// calculated on the net base, by up to one subunit per rate.
+	exp := r.Invoice.Currency.Def().Subunits
+	tolerance := num.MakeAmount(int64(r.headerDiscountRates), exp)
+
 	var diffs []string
 	for _, c := range []struct {
-		name   string
-		want   json.Number
-		actual num.Amount
+		name      string
+		want      json.Number
+		actual    num.Amount
+		tolerance num.Amount
 	}{
 		// Discount lines may become invoice discounts in GOBL, so the sum of
 		// lines is not comparable, only the net total after all discounts.
-		{"subtotal+discountTotal", json.Number(subtotal.Add(discount).String()), t.Total},
-		{"taxTotal", src.TaxTotal, t.Tax},
-		{"total", src.Total, t.TotalWithTax},
+		{"subtotal+discountTotal", json.Number(subtotal.Add(discount).String()), t.Total, num.AmountZero},
+		{"taxTotal", src.TaxTotal, t.Tax, tolerance},
+		{"total", src.Total, t.TotalWithTax, tolerance},
 	} {
-		want, err := parseAmount(c.want)
+		want, err := r.money(c.want)
 		if err != nil {
 			return fmt.Errorf("invoice %s: %w", c.name, err)
 		}
-		if !want.Equals(c.actual) {
-			diffs = append(diffs, fmt.Sprintf("%s: netsuite %s, gobl %s", c.name, want, c.actual))
+		if want.Equals(c.actual) {
+			continue
 		}
+		diff := want.Subtract(c.actual).Abs()
+		if diff.Compare(c.tolerance) <= 0 {
+			r.Warnings = append(r.Warnings, &Notice{
+				Path: "invoice." + c.name,
+				Message: fmt.Sprintf("netsuite %s, gobl %s: header discount tax rounded separately by netsuite",
+					want, c.actual),
+			})
+			continue
+		}
+		diffs = append(diffs, fmt.Sprintf("%s: netsuite %s, gobl %s", c.name, want, c.actual))
 	}
 	if len(diffs) > 0 {
 		return fmt.Errorf("totals differ from netsuite: %s", strings.Join(diffs, "; "))

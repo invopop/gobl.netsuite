@@ -244,6 +244,7 @@ func (r *Result) addHeaderDiscount(bases []*taxBase, country l10n.TaxCountryCode
 	}
 
 	reason := firstOf(refName(src.DiscountItem), "Discount")
+	r.headerDiscountRates = len(bases)
 	remaining := total
 	for i, b := range bases {
 		share := remaining
