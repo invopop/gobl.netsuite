@@ -16,6 +16,7 @@ import (
 // NetSuite account, to help design and test the conversion to GOBL.
 type probeOpts struct {
 	*rootOpts
+	mappingFlags
 	outFile    string
 	convert    bool
 	stripLinks bool
@@ -49,6 +50,7 @@ func (p *probeOpts) cmd() *cobra.Command {
 		tx.Flags().StringVarP(&p.outFile, "out", "o", "", "file to write to, instead of stdout")
 		tx.Flags().BoolVar(&p.convert, "convert", false, "convert the bundle into a GOBL envelope")
 		tx.Flags().BoolVar(&p.stripLinks, "strip-links", false, "remove links, which contain the account ID, e.g. to create test fixtures")
+		p.add(tx)
 		cmd.AddCommand(tx)
 	}
 
@@ -129,7 +131,11 @@ func (p *probeOpts) runTransaction(cmd *cobra.Command, recordType, id string) er
 		return err
 	}
 	if p.convert {
-		return convertBundle(cmd, b, p.outFile)
+		opts, err := p.options()
+		if err != nil {
+			return err
+		}
+		return convertBundle(cmd, b, p.outFile, opts...)
 	}
 	data, err := json.Marshal(b)
 	if err != nil {

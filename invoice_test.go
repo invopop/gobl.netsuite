@@ -67,7 +67,6 @@ func TestFromInvoice(t *testing.T) {
 		require.Len(t, inv.Lines, 1)
 		assert.Equal(t, "SVC-001 Consulting", inv.Lines[0].Item.Name)
 		assert.Equal(t, "21%", inv.Lines[0].Taxes[0].Percent.String())
-		assert.Len(t, res.SourceLines, 1)
 		assert.Empty(t, res.Unmapped)
 	})
 
@@ -148,6 +147,8 @@ func TestFromInvoice(t *testing.T) {
 	})
 }
 
+// TestFromInvoiceTaxKeys checks the conversion of tax codes from their flags,
+// used when there is no mapping for the code, so without presets.
 func TestFromInvoiceTaxKeys(t *testing.T) {
 	tests := []struct {
 		flag string
@@ -167,7 +168,7 @@ func TestFromInvoiceTaxKeys(t *testing.T) {
 				m["rate"] = 0
 			})
 			b.TaxCodes["6"] = tc
-			res, err := netsuite.FromInvoice(b)
+			res, err := netsuite.FromInvoice(b, netsuite.WithPresets())
 			require.NoError(t, err)
 			combo := res.Invoice.Lines[0].Taxes[0]
 			assert.Equal(t, tt.key, combo.Key.String())
@@ -180,7 +181,7 @@ func TestFromInvoiceTaxKeys(t *testing.T) {
 		modify(t, &b.Transaction, func(m map[string]any) {
 			lines(m)[0].(map[string]any)["taxRate1"] = 0
 		})
-		res, err := netsuite.FromInvoice(b)
+		res, err := netsuite.FromInvoice(b, netsuite.WithPresets())
 		require.NoError(t, err)
 		assert.Equal(t, tax.KeyZero, res.Invoice.Lines[0].Taxes[0].Key)
 	})
@@ -190,7 +191,7 @@ func TestFromInvoiceTaxKeys(t *testing.T) {
 		modify(t, &b.Transaction, func(m map[string]any) {
 			lines(m)[0].(map[string]any)["taxRate1"] = 10
 		})
-		res, err := netsuite.FromInvoice(b)
+		res, err := netsuite.FromInvoice(b, netsuite.WithPresets())
 		require.NoError(t, err)
 		assert.Equal(t, "10%", res.Invoice.Lines[0].Taxes[0].Percent.String())
 	})
@@ -200,7 +201,7 @@ func TestFromInvoiceTaxKeys(t *testing.T) {
 		modify(t, &b.Transaction, func(m map[string]any) {
 			delete(lines(m)[0].(map[string]any), "taxCode")
 		})
-		res, err := netsuite.FromInvoice(b)
+		res, err := netsuite.FromInvoice(b, netsuite.WithPresets())
 		require.NoError(t, err)
 		assert.Empty(t, res.Invoice.Lines[0].Taxes)
 		require.Len(t, res.Unmapped, 1)
@@ -229,7 +230,6 @@ func TestFromInvoiceLineTypes(t *testing.T) {
 	res, err := netsuite.FromInvoice(b)
 	require.NoError(t, err)
 	assert.Len(t, res.Invoice.Lines, 1)
-	assert.Len(t, res.SourceLines, 1)
 	assert.Empty(t, res.Invoice.Discounts)
 	require.Len(t, res.Unmapped, 3)
 	assert.Equal(t, "transaction.item.items[2]", res.Unmapped[0].Path)
@@ -299,7 +299,7 @@ func TestFromInvoiceUnmapped(t *testing.T) {
 	assert.ElementsMatch(t, []string{
 		"transaction.shippingCost",
 		"transaction.custbody_project",
-		"source_lines[0].custcol_cn_code",
+		"transaction.item.items[0].custcol_cn_code",
 	}, paths)
 }
 

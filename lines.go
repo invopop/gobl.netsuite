@@ -116,12 +116,12 @@ func (r *Result) setLines(country l10n.TaxCountryCode) error {
 				return fmt.Errorf("%s: %w", path, err)
 			}
 			r.Invoice.Lines = append(r.Invoice.Lines, line)
-			r.SourceLines = append(r.SourceLines, raw.Item.Items[i])
+			r.track(ScopeLine, line, raw.Item.Items[i])
 			addBase(path, it, amount)
 			prev, prevLine = it, line
 			continue
 		case itemType == itemTypeDiscount:
-			ok, err := r.addDiscount(path, it, amount, prev, prevLine, country)
+			ok, err := r.addDiscount(path, it, raw.Item.Items[i], amount, prev, prevLine, country)
 			if err != nil {
 				return fmt.Errorf("%s: %w", path, err)
 			}
@@ -182,7 +182,7 @@ func (r *Result) newLine(path string, it *TransactionItem, amount num.Amount, co
 // When that code matches the previous line's, it becomes a discount on that
 // line, otherwise, such as after a subtotal, it becomes an invoice discount
 // with the discount line's tax. Returns true if the discount was converted.
-func (r *Result) addDiscount(path string, it *TransactionItem, amount num.Amount, prev *TransactionItem, prevLine *bill.Line, country l10n.TaxCountryCode) (bool, error) {
+func (r *Result) addDiscount(path string, it *TransactionItem, src json.RawMessage, amount num.Amount, prev *TransactionItem, prevLine *bill.Line, country l10n.TaxCountryCode) (bool, error) {
 	if !amount.IsNegative() {
 		r.notice(path, "discount line with a positive amount not supported")
 		return false, nil
@@ -191,10 +191,12 @@ func (r *Result) addDiscount(path string, it *TransactionItem, amount num.Amount
 	amount = amount.Negate()
 
 	if prev != nil && sameTaxCode(prev, it) {
-		prevLine.Discounts = append(prevLine.Discounts, &bill.LineDiscount{
+		d := &bill.LineDiscount{
 			Reason: reason,
 			Amount: amount,
-		})
+		}
+		prevLine.Discounts = append(prevLine.Discounts, d)
+		r.track(ScopeLineDiscount, d, src)
 		return true, nil
 	}
 
@@ -207,11 +209,13 @@ func (r *Result) addDiscount(path string, it *TransactionItem, amount num.Amount
 	if err != nil {
 		return false, err
 	}
-	r.Invoice.Discounts = append(r.Invoice.Discounts, &bill.Discount{
+	d := &bill.Discount{
 		Reason: reason,
 		Amount: amount,
 		Taxes:  tax.Set{combo},
-	})
+	}
+	r.Invoice.Discounts = append(r.Invoice.Discounts, d)
+	r.track(ScopeDiscount, d, src)
 	return true, nil
 }
 
@@ -256,17 +260,20 @@ func (r *Result) addHeaderDiscount(bases []*taxBase, country l10n.TaxCountryCode
 		if err != nil {
 			return err
 		}
-		r.Invoice.Discounts = append(r.Invoice.Discounts, &bill.Discount{
+		d := &bill.Discount{
 			Reason: reason,
 			Amount: share,
 			Taxes:  tax.Set{combo},
-		})
+		}
+		r.Invoice.Discounts = append(r.Invoice.Discounts, d)
+		r.track(ScopeDiscount, d, r.Source.Transaction)
 	}
 	return nil
 }
 
-// newTaxCombo determines the line's tax from its tax code, which in legacy
-// tax accounts describes the type of tax and how it applies.
+// newTaxCombo determines the line's tax from its tax code, using the
+// mapping's entry for the code if there is one, or else the flags of the tax
+// code record, which in legacy tax accounts describe how the tax applies.
 func (r *Result) newTaxCombo(path string, it *TransactionItem, country l10n.TaxCountryCode) (*tax.Combo, error) {
 	if it.TaxCode == nil || it.TaxCode.ID == "" {
 		r.notice(path, "line has no tax code")
@@ -276,36 +283,50 @@ func (r *Result) newTaxCombo(path string, it *TransactionItem, country l10n.TaxC
 	if !ok {
 		return nil, fmt.Errorf("tax code %s not in bundle", it.TaxCode.ID)
 	}
-	if tc.TaxType == nil || tc.TaxType.RefName == "" {
-		return nil, fmt.Errorf("tax code %s: missing tax type", tc.ID)
+
+	var combo *tax.Combo
+	if m := r.Mapping.taxCode(tc); m != nil {
+		c := *m.Combo
+		c.Ext = m.Combo.Ext.Clone()
+		combo = &c
+	} else {
+		combo = new(tax.Combo)
+		switch {
+		case tc.ReverseCharge:
+			combo.Key = tax.KeyReverseCharge
+		case tc.ECCode:
+			combo.Key = tax.KeyIntraCommunity
+		case tc.Export:
+			combo.Key = tax.KeyExport
+		case tc.Exempt:
+			combo.Key = tax.KeyExempt
+		}
+		if len(r.Mapping.TaxCodes) > 0 {
+			r.notice(path+".taxCode", "tax code %s (%s) not in mapping, converted from its flags", tc.ID, tc.ItemID)
+		}
 	}
 
-	combo := &tax.Combo{
-		Category: cbc.Code(strings.ToUpper(tc.TaxType.RefName)),
+	if combo.Category == "" {
+		if tc.TaxType == nil || tc.TaxType.RefName == "" {
+			return nil, fmt.Errorf("tax code %s: missing tax type", tc.ID)
+		}
+		combo.Category = cbc.Code(strings.ToUpper(tc.TaxType.RefName))
 	}
-	if tc.NexusCountry != nil {
+	if combo.Country == "" && tc.NexusCountry != nil {
 		if c := l10n.TaxCountryCode(tc.NexusCountry.ID); c != "" && c != country {
 			combo.Country = c
 		}
 	}
 
-	switch {
-	case tc.ReverseCharge:
-		combo.Key = tax.KeyReverseCharge
-	case tc.ECCode:
-		combo.Key = tax.KeyIntraCommunity
-	case tc.Export:
-		combo.Key = tax.KeyExport
-	case tc.Exempt:
-		combo.Key = tax.KeyExempt
-	default:
-		// The line's rate may differ from the tax code's default.
+	// Taxable combos without a rate or percent take the line's percent, as
+	// the line's rate may differ from the tax code's default.
+	if combo.Percent == nil && combo.Rate == "" && (combo.Key == "" || combo.Key == tax.KeyStandard) {
 		rate := firstOf(it.TaxRate1.String(), tc.Rate.String())
 		p, err := num.PercentageFromString(rate + "%")
 		if err != nil {
 			return nil, fmt.Errorf("tax rate %q: %w", rate, err)
 		}
-		if p.IsZero() {
+		if p.IsZero() && combo.Key == "" {
 			combo.Key = tax.KeyZero
 		} else {
 			combo.Percent = &p

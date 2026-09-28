@@ -1,0 +1,11 @@
+{
+  "tax_codes": [
+    { "code": "S-ES", "combo": { "cat": "VAT", "key": "standard" } },
+    { "code": "R-ES", "combo": { "cat": "VAT", "key": "standard" } },
+    { "code": "R2-ES", "combo": { "cat": "VAT", "key": "standard" } },
+    { "code": "Z-ES", "combo": { "cat": "VAT", "key": "zero" } },
+    { "code": "EX-ES", "combo": { "cat": "VAT", "key": "exempt" } },
+    { "code": "ESSS-ES", "combo": { "cat": "VAT", "key": "intra-community" } },
+    { "code": "RC-ES", "combo": { "cat": "VAT", "key": "reverse-charge" } }
+  ]
+}

@@ -27,17 +27,16 @@ const (
 
 // Result is the outcome of converting a NetSuite transaction.
 type Result struct {
-	// Invoice is the GOBL invoice, not yet calculated, so that mappings can
-	// be applied before calculating and validating it.
+	// Invoice is the GOBL invoice, with the mapping applied, but not yet
+	// calculated.
 	Invoice *bill.Invoice `json:"invoice"`
 
 	// Source is the bundle the invoice was converted from.
 	Source *Bundle `json:"source"`
 
-	// SourceLines holds the raw NetSuite item line for each GOBL line, in the
-	// same order as the invoice lines. NetSuite lines that do not produce a
-	// GOBL line, such as subtotals, are not included.
-	SourceLines []json.RawMessage `json:"source_lines"`
+	// Mapping is the effective mapping used, after merging presets and any
+	// provided mappings.
+	Mapping *Mapping `json:"mapping,omitempty"`
 
 	// Unmapped lists source data the conversion did not use and may need a
 	// mapping, such as custom fields or unsupported line types.
@@ -52,6 +51,10 @@ type Result struct {
 	// headerDiscountRates is the number of tax codes a header discount was
 	// shared between.
 	headerDiscountRates int
+
+	// elements are the parts of the document with the source data they were
+	// converted from, for rules.
+	elements []*element
 }
 
 // Notice describes a piece of source data that was not converted.
@@ -70,37 +73,38 @@ func (r *Result) notice(path, format string, args ...any) {
 //
 // The conversion supports accounts using legacy tax, with a tax code per
 // line, and requires OneWorld, as the supplier is taken from the subsidiary.
-// The resulting invoice is not calculated: apply any mappings, calculate, and
-// then call CheckTotals to compare with the amounts calculated by NetSuite.
-func FromInvoice(b *Bundle) (*Result, error) {
-	return convert(b, transactionTypeInvoice)
+// The mapping from the presets and options is applied, but the resulting
+// invoice is not calculated: calculate and validate it, then call
+// CheckTotals to compare with the amounts calculated by NetSuite.
+func FromInvoice(b *Bundle, opts ...Option) (*Result, error) {
+	return convert(b, transactionTypeInvoice, opts)
 }
 
 // FromCreditMemo converts a bundle containing a NetSuite credit memo into a
 // GOBL credit note, referring to the invoices it was created from or applied
 // to when they are included in the bundle. See FromInvoice for details.
-func FromCreditMemo(b *Bundle) (*Result, error) {
-	return convert(b, transactionTypeCreditMemo)
+func FromCreditMemo(b *Bundle, opts ...Option) (*Result, error) {
+	return convert(b, transactionTypeCreditMemo, opts)
 }
 
 // Convert converts a bundle into a GOBL invoice or credit note according to
 // the type of its transaction.
-func Convert(b *Bundle) (*Result, error) {
+func Convert(b *Bundle, opts ...Option) (*Result, error) {
 	recs, err := b.parse()
 	if err != nil {
 		return nil, err
 	}
 	switch t := recs.transactionType(); t {
 	case transactionTypeInvoice:
-		return FromInvoice(b)
+		return FromInvoice(b, opts...)
 	case transactionTypeCreditMemo:
-		return FromCreditMemo(b)
+		return FromCreditMemo(b, opts...)
 	default:
 		return nil, fmt.Errorf("unsupported transaction type %q", t)
 	}
 }
 
-func convert(b *Bundle, txType string) (*Result, error) {
+func convert(b *Bundle, txType string, opts []Option) (*Result, error) {
 	recs, err := b.parse()
 	if err != nil {
 		return nil, err
@@ -118,6 +122,11 @@ func convert(b *Bundle, txType string) (*Result, error) {
 		return nil, fmt.Errorf("subsidiary %s: country is required", recs.subsidiary.ID)
 	}
 	country := l10n.TaxCountryCode(recs.subsidiary.Country.ID)
+
+	o := newOptions(opts)
+	if res.Mapping, err = o.mapping(country); err != nil {
+		return nil, err
+	}
 
 	inv := &bill.Invoice{
 		Regime: tax.WithRegime(country),
@@ -146,7 +155,9 @@ func convert(b *Bundle, txType string) (*Result, error) {
 	}
 
 	inv.Supplier = newSupplier(recs.subsidiary)
+	res.track(ScopeSupplier, inv.Supplier, b.Subsidiary)
 	inv.Customer = newCustomer(src, recs.customer)
+	res.track(ScopeCustomer, inv.Customer, b.Customer)
 
 	if err := res.setLines(country); err != nil {
 		return nil, err
@@ -162,6 +173,10 @@ func convert(b *Bundle, txType string) (*Result, error) {
 
 	if src.OtherRefNum != "" {
 		inv.Ordering = &bill.Ordering{Code: cbc.Code(src.OtherRefNum)}
+	}
+
+	if err := res.applyRules(o.timeout); err != nil {
+		return nil, err
 	}
 
 	res.checkHeaderAmounts()
@@ -184,12 +199,14 @@ func (r *Result) setPreceding() error {
 		if err != nil {
 			return fmt.Errorf("related transaction %s tranDate: %w", id, err)
 		}
-		r.Invoice.Preceding = append(r.Invoice.Preceding, &org.DocumentRef{
+		ref := &org.DocumentRef{
 			Type:      bill.InvoiceTypeStandard,
 			Code:      cbc.Code(pre.TranID),
 			IssueDate: &d,
 			Meta:      cbc.Meta{MetaKeyNetSuiteID: pre.ID},
-		})
+		}
+		r.Invoice.Preceding = append(r.Invoice.Preceding, ref)
+		r.track(ScopePreceding, ref, r.Source.Related[id])
 	}
 	if r.Invoice.Type == bill.InvoiceTypeCreditNote && len(r.Invoice.Preceding) == 0 {
 		r.notice("transaction", "credit memo not created from or applied to an invoice")
@@ -275,24 +292,27 @@ func (r *Result) checkHeaderAmounts() {
 
 // findCustomFields lists custom body and line fields with values, as these
 // are specific to each account and can only be converted with a mapping.
+// Fields that a rule refers to are considered mapped.
 func (r *Result) findCustomFields() {
+	var raw struct {
+		Item struct {
+			Items []map[string]json.RawMessage `json:"items"`
+		} `json:"item"`
+	}
 	body := make(map[string]json.RawMessage)
 	if err := json.Unmarshal(r.Source.Transaction, &body); err != nil {
 		return
 	}
+	_ = json.Unmarshal(r.Source.Transaction, &raw) // lines are optional
 	for _, k := range slices.Sorted(maps.Keys(body)) {
-		if strings.HasPrefix(k, "custbody") && hasValue(body[k]) {
+		if strings.HasPrefix(k, "custbody") && hasValue(body[k]) && !r.Mapping.refersTo(k) {
 			r.notice("transaction."+k, "custom field")
 		}
 	}
-	for i, line := range r.SourceLines {
-		fields := make(map[string]json.RawMessage)
-		if err := json.Unmarshal(line, &fields); err != nil {
-			continue
-		}
+	for i, fields := range raw.Item.Items {
 		for _, k := range slices.Sorted(maps.Keys(fields)) {
-			if strings.HasPrefix(k, "custcol") && hasValue(fields[k]) {
-				r.notice(fmt.Sprintf("source_lines[%d].%s", i, k), "custom field")
+			if strings.HasPrefix(k, "custcol") && hasValue(fields[k]) && !r.Mapping.refersTo(k) {
+				r.notice(fmt.Sprintf("transaction.item.items[%d].%s", i, k), "custom field")
 			}
 		}
 	}

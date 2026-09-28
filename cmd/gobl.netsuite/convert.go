@@ -14,6 +14,7 @@ import (
 
 type convertOpts struct {
 	*rootOpts
+	mappingFlags
 	outFile string
 }
 
@@ -32,6 +33,7 @@ func (c *convertOpts) cmd() *cobra.Command {
 		RunE: c.runE,
 	}
 	cmd.Flags().StringVarP(&c.outFile, "out", "o", "", "file to write to, instead of stdout")
+	c.add(cmd)
 	return cmd
 }
 
@@ -53,14 +55,18 @@ func (c *convertOpts) runE(cmd *cobra.Command, args []string) error {
 	if err := json.Unmarshal(data, b); err != nil {
 		return fmt.Errorf("parsing bundle: %w", err)
 	}
-	return convertBundle(cmd, b, c.outFile)
+	opts, err := c.options()
+	if err != nil {
+		return err
+	}
+	return convertBundle(cmd, b, c.outFile, opts...)
 }
 
 // convertBundle converts, calculates and outputs the GOBL envelope. Notices
 // about unmapped data are printed to stderr, and an error is returned after
 // the output if the invoice is invalid or its totals differ from NetSuite's.
-func convertBundle(cmd *cobra.Command, b *netsuite.Bundle, outFile string) error {
-	res, err := netsuite.Convert(b)
+func convertBundle(cmd *cobra.Command, b *netsuite.Bundle, outFile string, opts ...netsuite.Option) error {
+	res, err := netsuite.Convert(b, opts...)
 	if err != nil {
 		return err
 	}

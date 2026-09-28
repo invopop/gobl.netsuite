@@ -49,7 +49,7 @@ if err != nil {
 	return err
 }
 
-// Apply any mappings to res.Invoice here, then calculate and validate.
+// Mappings have been applied, so calculate and validate.
 env, err := gobl.Envelop(res.Invoice)
 if err != nil {
 	return err
@@ -70,9 +70,52 @@ if err := res.CheckTotals(); err != nil {
 The `Result` also provides:
 
 - `Source`: the bundle the invoice was converted from.
-- `SourceLines`: the raw NetSuite item line for each GOBL line, in the same order, as some NetSuite lines (e.g. subtotals) do not produce a GOBL line.
 - `Unmapped`: source data that was not converted, such as custom fields (`custbody*`, `custcol*`) or unsupported line types.
 - `Warnings`: differences with NetSuite's totals accepted by `CheckTotals`.
+- `Mapping`: the effective mapping used, after merging presets and mappings.
+
+### Mappings
+
+A `Mapping` customises the conversion with a table of tax codes and a list of rules. Presets provide mappings for regions, embedded in the library under `mappings/`, and an account can extend or override them with its own:
+
+```go
+res, err := netsuite.Convert(b,
+	netsuite.WithMapping(accountMapping), // merged after the presets
+)
+```
+
+By default the preset named after the supplier's country is used, e.g. `es`. `WithPresets(names...)` chooses presets instead, and `WithPresets()` disables them. Mappings are merged in order: tax codes with the same `id` or `code`, and rules with the same `id`, replace earlier ones, or remove them with `"disabled": true`.
+
+```json
+{
+  "tax_codes": [
+    { "code": "EX-ES", "combo": { "cat": "VAT", "key": "exempt", "ext": { "es-verifactu-exempt": "E6" } } },
+    { "id": "42", "combo": { "cat": "VAT", "key": "reverse-charge" } }
+  ],
+  "rules": [
+    { "id": "po-number", "jq": ".ordering.code = $source.transaction.custbody_po" },
+    { "id": "cn-code", "scope": "line", "jq": "if $src.custcol_cn_code then .item.identities += [{type: \"CN\", code: $src.custcol_cn_code}] end" }
+  ]
+}
+```
+
+**Tax codes** map a NetSuite tax code, by internal `id` or by `code` (its name, e.g. `S-ES`), to a GOBL tax combo. Matches by `id` take priority, as internal IDs are specific to an account while presets use codes. When a combo has neither a `percent` nor a `rate` and is standard or has no key, the percent is taken from the NetSuite line, and the category defaults to the tax code's tax type. Codes without an entry are converted using the tax code's flags, reported as unmapped when the mapping has tax codes.
+
+**Rules** are [jq](https://jqlang.org) programs, run with [gojq](https://github.com/itchyny/gojq), that replace part of the converted document with their single output. The `scope` determines what the rule applies to, with `.` the GOBL element and `$src` the NetSuite data it was converted from:
+
+| Scope | `.` | `$src` |
+| --- | --- | --- |
+| `document` (default) | the invoice | `null` |
+| `line` | each line | the item line |
+| `line-discount` | each line discount | the discount item line |
+| `discount` | each invoice discount | the discount item line, or the transaction for header discounts |
+| `customer` | the customer | the customer record |
+| `supplier` | the supplier | the subsidiary record |
+| `preceding` | each preceding document | the related invoice |
+
+`$source` is always the whole bundle, and `$scope` the rule's scope. Rules run by scope in the order above, and in mapping order within a scope, so document rules see the result of all the others and are the only ones that should add or remove elements. Custom fields referred to by a rule are not reported as unmapped.
+
+Rules cannot access the environment or files, and each run on an element is limited to one second by default (`WithRuleTimeout`). As jq numbers are floating point, rules should move or look up amounts, and leave calculations to GOBL.
 
 ### Examples
 
@@ -152,8 +195,13 @@ go run ./cmd/gobl.netsuite probe create invoice invoice.json
 go run ./cmd/gobl.netsuite probe transform invoice 1234 creditmemo credit.json
 go run ./cmd/gobl.netsuite probe update creditmemo 1235 --replace item lines.json
 
-# Convert a bundle file into a GOBL envelope
+# Convert a bundle file into a GOBL envelope, optionally with mappings
 go run ./cmd/gobl.netsuite convert examples/netsuite/invoice_basic.json
+go run ./cmd/gobl.netsuite convert examples/netsuite/invoice_basic.json -m account.json --no-presets
+
+# List the mapping presets, or show one
+go run ./cmd/gobl.netsuite presets
+go run ./cmd/gobl.netsuite presets es
 
 # Run any SuiteQL query
 go run ./cmd/gobl.netsuite probe query "SELECT id, name FROM subsidiary"

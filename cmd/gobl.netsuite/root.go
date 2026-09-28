@@ -26,6 +26,7 @@ func (o *rootOpts) cmd() *cobra.Command {
 	cmd.AddCommand(versionCmd())
 	cmd.AddCommand(probe(o).cmd())
 	cmd.AddCommand(convert(o).cmd())
+	cmd.AddCommand(presetsCmd())
 
 	return cmd
 }
