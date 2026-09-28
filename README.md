@@ -102,10 +102,12 @@ By default the `default` preset is used, followed by a preset named after the su
 **Tax codes** map NetSuite tax codes to a GOBL tax combo. Each entry matches tax codes in one of three ways, in order of priority:
 
 1. `id`: the internal ID of a tax code, specific to an account.
-2. `code`: the name of a tax code (its `itemId`, e.g. `S-ES`), which accounts can change.
+2. `code`: the name of a tax code (its `itemId`, e.g. `S-ES`), which accounts can change. Wildcards can be used, e.g. `UNDEF-*`, and when several match, the one defined last is used.
 3. `match`: the fields of the tax code record, e.g. `{"exempt": true, "nexusCountry.id": "ES"}`, including custom fields. Nested fields use dots, missing fields match `false` or `null`, and an empty match applies to all tax codes. When several apply, the entry with the most criteria is used, or if tied, the one defined last.
 
-Presets use `match`, as NetSuite identifies tax codes by their properties rather than their names, which vary between accounts. The `default` preset converts the standard properties (Exempt, Export, EC Code and Reverse Charge Code) to GOBL tax keys in every country. When a combo has neither a `percent` nor a `rate` and is standard or has no key, the percent is taken from the NetSuite line, and the category defaults to the tax code's tax type. Codes without an entry are taxed at the line's rate, and reported as unmapped.
+Instead of a `combo`, an entry can set `reject` with a message, so that lines with the tax code fail the conversion rather than being converted.
+
+Presets use `match`, as NetSuite identifies tax codes by their properties rather than their names, which vary between accounts. The `default` preset converts the standard properties (Exempt, Export, EC Code and Reverse Charge Code) to GOBL tax keys in every country. It also rejects NetSuite's undefined tax codes (`UNDEF-*`), which NetSuite uses when it cannot determine the tax code, for example for imported transactions. They can only be identified by name, as their properties are those of a zero rate. When a combo has neither a `percent` nor a `rate` and is standard or has no key, the percent is taken from the NetSuite line, and the category defaults to the tax code's tax type. Codes without an entry are taxed at the line's rate, and reported as unmapped.
 
 Tax code properties are set consistently in the countries supported by NetSuite's International Tax Reports SuiteApp, which creates the tax codes when a subsidiary is added. Of those, GOBL has a tax regime for: Austria, Belgium, Colombia, Denmark, Finland, France, Germany, Ireland, Italy, Netherlands, New Zealand, Norway, Peru, Poland, Portugal, Singapore, Slovakia, Spain, Sweden, Switzerland and the United Kingdom. Country presets should only be needed for requirements beyond these properties, such as surcharges.
 

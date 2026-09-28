@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"path"
 	"reflect"
 	"slices"
 	"strings"
@@ -38,7 +39,8 @@ type Mapping struct {
 type TaxCodeMap struct {
 	// ID is the internal ID of the tax code.
 	ID string `json:"id,omitempty"`
-	// Code is the name of the tax code, its itemId.
+	// Code is the name of the tax code, its itemId, which may use the
+	// wildcards of path.Match, e.g. "UNDEF-*".
 	Code string `json:"code,omitempty"`
 	// Match lists fields of the tax code record and the values they must
 	// have, where nested fields use dots, e.g. {"exempt": true,
@@ -50,6 +52,10 @@ type TaxCodeMap struct {
 	// taken from the NetSuite line. The category defaults to the tax code's
 	// tax type.
 	Combo *tax.Combo `json:"combo,omitempty"`
+	// Reject makes the conversion fail for lines with the tax code, with the
+	// message explaining why, instead of providing a combo. Used for tax codes
+	// that should never be converted, like NetSuite's undefined tax codes.
+	Reject string `json:"reject,omitempty"`
 	// Disabled removes an entry defined by an earlier mapping.
 	Disabled bool `json:"disabled,omitempty"`
 }
@@ -204,8 +210,15 @@ func (m *Mapping) Validate() error {
 		if n != 1 {
 			errs = append(errs, fmt.Errorf("tax_codes[%d]: one of id, code or match required", i))
 		}
-		if tc.Combo == nil && !tc.Disabled {
-			errs = append(errs, fmt.Errorf("tax_codes[%d]: combo required", i))
+		switch {
+		case tc.Disabled:
+		case tc.Combo == nil && tc.Reject == "":
+			errs = append(errs, fmt.Errorf("tax_codes[%d]: combo or reject required", i))
+		case tc.Combo != nil && tc.Reject != "":
+			errs = append(errs, fmt.Errorf("tax_codes[%d]: combo and reject cannot both be set", i))
+		}
+		if _, err := path.Match(tc.Code, ""); err != nil {
+			errs = append(errs, fmt.Errorf("tax_codes[%d]: invalid code pattern %q", i, tc.Code))
 		}
 	}
 	ids := make(map[string]bool)
@@ -230,8 +243,8 @@ func (m *Mapping) Validate() error {
 }
 
 // taxCode finds the entry for a tax code, preferring matches by ID, then
-// code, then the entry whose criteria match with the most fields, or the
-// later one if tied.
+// the last matching code, then the entry whose criteria match with the most
+// fields, or the later one if tied.
 func (m *Mapping) taxCode(tc *SalesTaxItem, record map[string]any) *TaxCodeMap {
 	if m == nil {
 		return nil
@@ -241,10 +254,17 @@ func (m *Mapping) taxCode(tc *SalesTaxItem, record map[string]any) *TaxCodeMap {
 			return e
 		}
 	}
+	var byCode *TaxCodeMap
 	for _, e := range m.TaxCodes {
-		if e.Code != "" && e.Code == tc.ItemID {
-			return e
+		if e.Code == "" {
+			continue
 		}
+		if ok, _ := path.Match(e.Code, tc.ItemID); ok {
+			byCode = e // the last match, so later mappings take priority
+		}
+	}
+	if byCode != nil {
+		return byCode
 	}
 	var best *TaxCodeMap
 	for _, e := range m.TaxCodes {

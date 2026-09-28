@@ -58,7 +58,9 @@ func TestMappingValidate(t *testing.T) {
 	m := mapping(t, `{
 		"tax_codes": [
 			{"combo": {"cat": "VAT"}},
-			{"code": "S-ES"}
+			{"code": "S-ES"},
+			{"code": "X-ES", "combo": {"cat": "VAT"}, "reject": "no"},
+			{"code": "[", "reject": "no"}
 		],
 		"rules": [
 			{"jq": "."},
@@ -72,10 +74,12 @@ func TestMappingValidate(t *testing.T) {
 	require.Error(t, err)
 	for _, msg := range []string{
 		"tax_codes[0]: one of id, code or match required",
-		"tax_codes[1]: combo required",
+		"tax_codes[1]: combo or reject required",
 		"rules[0]: id required",
 		`rules[2]: duplicate id "x"`,
 		`rules[3]: unknown scope "address"`,
+		"tax_codes[2]: combo and reject cannot both be set",
+		`tax_codes[3]: invalid code pattern "["`,
 		"rules[4]: parsing jq",
 	} {
 		assert.ErrorContains(t, err, msg)
@@ -213,6 +217,61 @@ func TestTaxCodeMatching(t *testing.T) {
 			"tax_codes": [{"code": "S-ES", "combo": {"key": "zero"}}]
 		}`)))
 		assert.Equal(t, tax.KeyZero, combo.Key)
+	})
+}
+
+// undefinedBundle is the basic example with its line using NetSuite's
+// undefined tax code, as found in the test account.
+func undefinedBundle(t *testing.T) *netsuite.Bundle {
+	t.Helper()
+	b := basicBundle(t)
+	b.TaxCodes["5"] = json.RawMessage(`{"id":"5","itemId":"UNDEF-ES",` +
+		`"description":"Used when NetSuite cannot determine the appropriate tax code for a transaction.",` +
+		`"rate":0.0,"exempt":false,"export":false,"ecCode":false,"reverseCharge":false,"service":false,` +
+		`"nexusCountry":{"id":"ES","refName":"ES"},"taxType":{"id":"1","refName":"VAT"}}`)
+	modify(t, &b.Transaction, func(m map[string]any) {
+		l := lines(m)[0].(map[string]any)
+		l["taxCode"] = map[string]any{"id": "5", "refName": "VAT:UNDEF-ES"}
+		l["taxRate1"] = 0
+	})
+	return b
+}
+
+func TestTaxCodeReject(t *testing.T) {
+	t.Run("undefined tax codes", func(t *testing.T) {
+		_, err := netsuite.FromInvoice(undefinedBundle(t))
+		assert.EqualError(t, err, "transaction.item.items[0]: tax code 5 (UNDEF-ES) rejected: "+
+			"NetSuite could not determine the tax code, set the correct tax code on the line")
+	})
+
+	t.Run("in a header discount", func(t *testing.T) {
+		b := undefinedBundle(t)
+		modify(t, &b.Transaction, func(m map[string]any) { m["discountTotal"] = -100 })
+		_, err := netsuite.FromInvoice(b)
+		assert.ErrorContains(t, err, "tax code 5 (UNDEF-ES) rejected")
+	})
+
+	t.Run("exact code overrides the pattern", func(t *testing.T) {
+		res, err := netsuite.FromInvoice(undefinedBundle(t), netsuite.WithMapping(mapping(t, `{
+			"tax_codes": [{"code": "UNDEF-ES", "combo": {"key": "outside-scope"}}]
+		}`)))
+		require.NoError(t, err)
+		assert.Equal(t, tax.KeyOutsideScope, res.Invoice.Lines[0].Taxes[0].Key)
+	})
+
+	t.Run("disabled", func(t *testing.T) {
+		res, err := netsuite.FromInvoice(undefinedBundle(t), netsuite.WithMapping(mapping(t, `{
+			"tax_codes": [{"code": "UNDEF-*", "disabled": true}]
+		}`)))
+		require.NoError(t, err)
+		assert.Equal(t, tax.KeyZero, res.Invoice.Lines[0].Taxes[0].Key)
+	})
+
+	t.Run("by ID", func(t *testing.T) {
+		_, err := netsuite.FromInvoice(basicBundle(t), netsuite.WithMapping(mapping(t, `{
+			"tax_codes": [{"id": "6", "reject": "not for sales"}]
+		}`)))
+		assert.ErrorContains(t, err, "tax code 6 (S-ES) rejected: not for sales")
 	})
 }
 

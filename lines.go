@@ -285,7 +285,11 @@ func (r *Result) newTaxCombo(path string, it *TransactionItem, country l10n.TaxC
 	}
 
 	var combo *tax.Combo
-	if m := r.Mapping.taxCode(tc, r.records.taxCodeFields[tc.ID]); m != nil {
+	m := r.Mapping.taxCode(tc, r.records.taxCodeFields[tc.ID])
+	if m != nil && m.Reject != "" {
+		return nil, fmt.Errorf("tax code %s (%s) rejected: %s", tc.ID, tc.ItemID, m.Reject)
+	}
+	if m != nil {
 		c := *m.Combo
 		c.Ext = m.Combo.Ext.Clone()
 		combo = &c

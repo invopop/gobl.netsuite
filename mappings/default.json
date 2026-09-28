@@ -4,6 +4,7 @@
     { "match": { "exempt": true }, "combo": { "key": "exempt" } },
     { "match": { "export": true }, "combo": { "key": "export" } },
     { "match": { "ecCode": true }, "combo": { "key": "intra-community" } },
-    { "match": { "reverseCharge": true }, "combo": { "key": "reverse-charge" } }
+    { "match": { "reverseCharge": true }, "combo": { "key": "reverse-charge" } },
+    { "code": "UNDEF-*", "reject": "NetSuite could not determine the tax code, set the correct tax code on the line" }
   ]
 }
