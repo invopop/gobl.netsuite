@@ -192,10 +192,10 @@ func TestTaxCodeMatching(t *testing.T) {
 	})
 
 	t.Run("custom fields", func(t *testing.T) {
-		combo := convert(t, map[string]any{"exempt": true, "rate": 0, "custrecord_nov_vatex": map[string]any{"id": "7", "refName": "VATEX-EU-G"}},
+		combo := convert(t, map[string]any{"exempt": true, "rate": 0, "custrecord_tax_reason": map[string]any{"id": "7", "refName": "Export"}},
 			netsuite.WithMapping(mapping(t, `{
 				"tax_codes": [
-					{"match": {"exempt": true, "custrecord_nov_vatex.refName": "VATEX-EU-G"}, "combo": {"key": "export"}}
+					{"match": {"exempt": true, "custrecord_tax_reason.refName": "Export"}, "combo": {"key": "export"}}
 				]
 			}`)))
 		assert.Equal(t, tax.KeyExport, combo.Key)
