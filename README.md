@@ -84,12 +84,12 @@ res, err := netsuite.Convert(b,
 )
 ```
 
-By default the preset named after the supplier's country is used, e.g. `es`. `WithPresets(names...)` chooses presets instead, and `WithPresets()` disables them. Mappings are merged in order: tax codes with the same `id` or `code`, and rules with the same `id`, replace earlier ones, or remove them with `"disabled": true`.
+By default the `default` preset is used, followed by a preset named after the supplier's country if there is one. `WithPresets(names...)` chooses presets instead, and `WithPresets()` disables them. Mappings are merged in order: tax codes with the same `id`, `code` or `match`, and rules with the same `id`, replace earlier ones, or remove them with `"disabled": true`.
 
 ```json
 {
   "tax_codes": [
-    { "code": "EX-ES", "combo": { "cat": "VAT", "key": "exempt", "ext": { "es-verifactu-exempt": "E6" } } },
+    { "match": { "exempt": true, "nexusCountry.id": "ES" }, "combo": { "key": "exempt", "ext": { "es-verifactu-exempt": "E6" } } },
     { "id": "42", "combo": { "cat": "VAT", "key": "reverse-charge" } }
   ],
   "rules": [
@@ -99,7 +99,15 @@ By default the preset named after the supplier's country is used, e.g. `es`. `Wi
 }
 ```
 
-**Tax codes** map a NetSuite tax code, by internal `id` or by `code` (its name, e.g. `S-ES`), to a GOBL tax combo. Matches by `id` take priority, as internal IDs are specific to an account while presets use codes. When a combo has neither a `percent` nor a `rate` and is standard or has no key, the percent is taken from the NetSuite line, and the category defaults to the tax code's tax type. Codes without an entry are converted using the tax code's flags, reported as unmapped when the mapping has tax codes.
+**Tax codes** map NetSuite tax codes to a GOBL tax combo. Each entry matches tax codes in one of three ways, in order of priority:
+
+1. `id`: the internal ID of a tax code, specific to an account.
+2. `code`: the name of a tax code (its `itemId`, e.g. `S-ES`), which accounts can change.
+3. `match`: the fields of the tax code record, e.g. `{"exempt": true, "nexusCountry.id": "ES"}`, including custom fields. Nested fields use dots, missing fields match `false` or `null`, and an empty match applies to all tax codes. When several apply, the entry with the most criteria is used, or if tied, the one defined last.
+
+Presets use `match`, as NetSuite identifies tax codes by their properties rather than their names, which vary between accounts. The `default` preset converts the standard properties (Exempt, Export, EC Code and Reverse Charge Code) to GOBL tax keys in every country. When a combo has neither a `percent` nor a `rate` and is standard or has no key, the percent is taken from the NetSuite line, and the category defaults to the tax code's tax type. Codes without an entry are taxed at the line's rate, and reported as unmapped.
+
+Tax code properties are set consistently in the countries supported by NetSuite's International Tax Reports SuiteApp, which creates the tax codes when a subsidiary is added. Of those, GOBL has a tax regime for: Austria, Belgium, Colombia, Denmark, Finland, France, Germany, Ireland, Italy, Netherlands, New Zealand, Norway, Peru, Poland, Portugal, Singapore, Slovakia, Spain, Sweden, Switzerland and the United Kingdom. Country presets should only be needed for requirements beyond these properties, such as surcharges.
 
 **Rules** are [jq](https://jqlang.org) programs, run with [gojq](https://github.com/itchyny/gojq), that replace part of the converted document with their single output. The `scope` determines what the rule applies to, with `.` the GOBL element and `$src` the NetSuite data it was converted from:
 
@@ -201,7 +209,7 @@ go run ./cmd/gobl.netsuite convert examples/netsuite/invoice_basic.json -m accou
 
 # List the mapping presets, or show one
 go run ./cmd/gobl.netsuite presets
-go run ./cmd/gobl.netsuite presets es
+go run ./cmd/gobl.netsuite presets default
 
 # Run any SuiteQL query
 go run ./cmd/gobl.netsuite probe query "SELECT id, name FROM subsidiary"

@@ -24,8 +24,10 @@ type options struct {
 	timeout    time.Duration
 }
 
-// WithPresets sets the presets to use, in order, instead of the default
-// preset for the supplier's country. With no names, no presets are used.
+// WithPresets sets the presets to use, in order, instead of the defaults:
+// the "default" preset followed by the one for the supplier's country, if
+// any. With no names, no presets are used, so tax codes are only converted
+// using the mappings provided.
 func WithPresets(names ...string) Option {
 	return func(o *options) {
 		o.presets = names
@@ -56,14 +58,19 @@ func newOptions(opts []Option) *options {
 	return o
 }
 
+// PresetDefault is the preset used for all countries, which converts tax
+// codes according to their properties.
+const PresetDefault = "default"
+
 // mapping builds the effective mapping from the presets and mappings. By
-// default the preset named after the supplier's country is used, if any.
+// default the default preset is used, followed by the one named after the
+// supplier's country, if any.
 func (o *options) mapping(country l10n.TaxCountryCode) (*Mapping, error) {
 	names := o.presets
 	if !o.presetsSet {
-		names = nil
+		names = []string{PresetDefault}
 		if name := strings.ToLower(country.String()); slices.Contains(Presets(), name) {
-			names = []string{name}
+			names = append(names, name)
 		}
 	}
 	ms := make([]*Mapping, 0, len(names)+len(o.mappings))

@@ -148,7 +148,7 @@ func TestFromInvoice(t *testing.T) {
 }
 
 // TestFromInvoiceTaxKeys checks the conversion of tax codes from their flags,
-// used when there is no mapping for the code, so without presets.
+// using the default preset.
 func TestFromInvoiceTaxKeys(t *testing.T) {
 	tests := []struct {
 		flag string
@@ -168,7 +168,7 @@ func TestFromInvoiceTaxKeys(t *testing.T) {
 				m["rate"] = 0
 			})
 			b.TaxCodes["6"] = tc
-			res, err := netsuite.FromInvoice(b, netsuite.WithPresets())
+			res, err := netsuite.FromInvoice(b)
 			require.NoError(t, err)
 			combo := res.Invoice.Lines[0].Taxes[0]
 			assert.Equal(t, tt.key, combo.Key.String())
@@ -181,7 +181,7 @@ func TestFromInvoiceTaxKeys(t *testing.T) {
 		modify(t, &b.Transaction, func(m map[string]any) {
 			lines(m)[0].(map[string]any)["taxRate1"] = 0
 		})
-		res, err := netsuite.FromInvoice(b, netsuite.WithPresets())
+		res, err := netsuite.FromInvoice(b)
 		require.NoError(t, err)
 		assert.Equal(t, tax.KeyZero, res.Invoice.Lines[0].Taxes[0].Key)
 	})
@@ -191,7 +191,7 @@ func TestFromInvoiceTaxKeys(t *testing.T) {
 		modify(t, &b.Transaction, func(m map[string]any) {
 			lines(m)[0].(map[string]any)["taxRate1"] = 10
 		})
-		res, err := netsuite.FromInvoice(b, netsuite.WithPresets())
+		res, err := netsuite.FromInvoice(b)
 		require.NoError(t, err)
 		assert.Equal(t, "10%", res.Invoice.Lines[0].Taxes[0].Percent.String())
 	})
@@ -201,7 +201,7 @@ func TestFromInvoiceTaxKeys(t *testing.T) {
 		modify(t, &b.Transaction, func(m map[string]any) {
 			delete(lines(m)[0].(map[string]any), "taxCode")
 		})
-		res, err := netsuite.FromInvoice(b, netsuite.WithPresets())
+		res, err := netsuite.FromInvoice(b)
 		require.NoError(t, err)
 		assert.Empty(t, res.Invoice.Lines[0].Taxes)
 		require.Len(t, res.Unmapped, 1)

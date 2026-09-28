@@ -1,8 +1,10 @@
 package netsuite
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"slices"
 	"strings"
 
@@ -15,7 +17,7 @@ import (
 // own, as mappings are merged in order with Merge.
 type Mapping struct {
 	// TaxCodes map NetSuite tax codes to GOBL tax combos. Codes without an
-	// entry are converted using the flags of the tax code record.
+	// entry are converted as taxable at the line's rate, and reported.
 	TaxCodes []*TaxCodeMap `json:"tax_codes,omitempty"`
 
 	// Rules modify the converted document using jq, for example to set
@@ -23,14 +25,26 @@ type Mapping struct {
 	Rules []*Rule `json:"rules,omitempty"`
 }
 
-// TaxCodeMap maps a NetSuite tax code to a GOBL tax combo. A tax code is
-// matched by its internal ID, which is specific to an account, or else by
-// its code, e.g. "S-ES", which presets use.
+// TaxCodeMap maps NetSuite tax codes to a GOBL tax combo. Each entry
+// matches tax codes in one way, in order of priority:
+//
+//   - ID: the internal ID of a tax code, specific to an account.
+//   - Code: the name of a tax code, e.g. "S-ES", which accounts may change.
+//   - Match: the properties of tax codes, as used by presets, since NetSuite
+//     identifies tax codes by their properties rather than their names.
+//
+// When several Match entries apply, the one with the most criteria is used,
+// or if tied, the one defined last, so that later mappings take priority.
 type TaxCodeMap struct {
 	// ID is the internal ID of the tax code.
 	ID string `json:"id,omitempty"`
 	// Code is the name of the tax code, its itemId.
 	Code string `json:"code,omitempty"`
+	// Match lists fields of the tax code record and the values they must
+	// have, where nested fields use dots, e.g. {"exempt": true,
+	// "nexusCountry.id": "ES"}. Missing fields match false or null. An empty
+	// match applies to all tax codes.
+	Match map[string]any `json:"match,omitempty"`
 	// Combo is used for lines with the tax code. When it provides neither a
 	// percent nor a rate, and the key is standard or empty, the percent is
 	// taken from the NetSuite line. The category defaults to the tax code's
@@ -42,10 +56,41 @@ type TaxCodeMap struct {
 
 // key identifies the entry when merging mappings.
 func (m *TaxCodeMap) key() string {
-	if m.ID != "" {
+	switch {
+	case m.ID != "":
 		return "id:" + m.ID
+	case m.Code != "":
+		return "code:" + m.Code
+	default:
+		// Maps are encoded with sorted keys, so equal criteria give equal keys.
+		data, _ := json.Marshal(m.Match)
+		return "match:" + string(data)
 	}
-	return "code:" + m.Code
+}
+
+// matches checks the criteria against the tax code record.
+func (m *TaxCodeMap) matches(record map[string]any) bool {
+	for path, want := range m.Match {
+		var v any = record
+		for _, k := range strings.Split(path, ".") {
+			obj, ok := v.(map[string]any)
+			if !ok {
+				v = nil
+				break
+			}
+			v = obj[k]
+		}
+		if v == nil {
+			if want != nil && want != false {
+				return false
+			}
+			continue
+		}
+		if !reflect.DeepEqual(v, want) {
+			return false
+		}
+	}
+	return true
 }
 
 // Scope determines what a rule is applied to, and so the data available.
@@ -150,8 +195,14 @@ func Merge(mappings ...*Mapping) *Mapping {
 func (m *Mapping) Validate() error {
 	var errs []error
 	for i, tc := range m.TaxCodes {
-		if tc.ID == "" && tc.Code == "" {
-			errs = append(errs, fmt.Errorf("tax_codes[%d]: id or code required", i))
+		n := 0
+		for _, set := range []bool{tc.ID != "", tc.Code != "", tc.Match != nil} {
+			if set {
+				n++
+			}
+		}
+		if n != 1 {
+			errs = append(errs, fmt.Errorf("tax_codes[%d]: one of id, code or match required", i))
 		}
 		if tc.Combo == nil && !tc.Disabled {
 			errs = append(errs, fmt.Errorf("tax_codes[%d]: combo required", i))
@@ -178,8 +229,10 @@ func (m *Mapping) Validate() error {
 	return errors.Join(errs...)
 }
 
-// taxCode finds the entry for a tax code, preferring a match by ID.
-func (m *Mapping) taxCode(tc *SalesTaxItem) *TaxCodeMap {
+// taxCode finds the entry for a tax code, preferring matches by ID, then
+// code, then the entry whose criteria match with the most fields, or the
+// later one if tied.
+func (m *Mapping) taxCode(tc *SalesTaxItem, record map[string]any) *TaxCodeMap {
 	if m == nil {
 		return nil
 	}
@@ -189,11 +242,20 @@ func (m *Mapping) taxCode(tc *SalesTaxItem) *TaxCodeMap {
 		}
 	}
 	for _, e := range m.TaxCodes {
-		if e.ID == "" && e.Code != "" && e.Code == tc.ItemID {
+		if e.Code != "" && e.Code == tc.ItemID {
 			return e
 		}
 	}
-	return nil
+	var best *TaxCodeMap
+	for _, e := range m.TaxCodes {
+		if e.Match == nil || !e.matches(record) {
+			continue
+		}
+		if best == nil || len(e.Match) >= len(best.Match) {
+			best = e
+		}
+	}
+	return best
 }
 
 // refersTo returns true when a rule mentions the field name.

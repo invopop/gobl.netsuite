@@ -271,9 +271,9 @@ func (r *Result) addHeaderDiscount(bases []*taxBase, country l10n.TaxCountryCode
 	return nil
 }
 
-// newTaxCombo determines the line's tax from its tax code, using the
-// mapping's entry for the code if there is one, or else the flags of the tax
-// code record, which in legacy tax accounts describe how the tax applies.
+// newTaxCombo determines the line's tax from the mapping's entry for its tax
+// code, such as the default preset's, which uses the tax code's properties.
+// Without an entry, the line is taxed at its rate.
 func (r *Result) newTaxCombo(path string, it *TransactionItem, country l10n.TaxCountryCode) (*tax.Combo, error) {
 	if it.TaxCode == nil || it.TaxCode.ID == "" {
 		r.notice(path, "line has no tax code")
@@ -285,24 +285,14 @@ func (r *Result) newTaxCombo(path string, it *TransactionItem, country l10n.TaxC
 	}
 
 	var combo *tax.Combo
-	if m := r.Mapping.taxCode(tc); m != nil {
+	if m := r.Mapping.taxCode(tc, r.records.taxCodeFields[tc.ID]); m != nil {
 		c := *m.Combo
 		c.Ext = m.Combo.Ext.Clone()
 		combo = &c
 	} else {
 		combo = new(tax.Combo)
-		switch {
-		case tc.ReverseCharge:
-			combo.Key = tax.KeyReverseCharge
-		case tc.ECCode:
-			combo.Key = tax.KeyIntraCommunity
-		case tc.Export:
-			combo.Key = tax.KeyExport
-		case tc.Exempt:
-			combo.Key = tax.KeyExempt
-		}
 		if len(r.Mapping.TaxCodes) > 0 {
-			r.notice(path+".taxCode", "tax code %s (%s) not in mapping, converted from its flags", tc.ID, tc.ItemID)
+			r.notice(path+".taxCode", "tax code %s (%s) not in mapping, converted at the line's rate", tc.ID, tc.ItemID)
 		}
 	}
 

@@ -199,6 +199,9 @@ type records struct {
 	currencies  map[string]*Currency
 	taxCodes    map[string]*SalesTaxItem
 	related     map[string]*Transaction
+	// taxCodeFields are the tax code records as plain JSON values, for
+	// matching them with mappings.
+	taxCodeFields map[string]map[string]any
 }
 
 func (b *Bundle) parse() (*records, error) {
@@ -207,6 +210,8 @@ func (b *Bundle) parse() (*records, error) {
 		currencies:  make(map[string]*Currency, len(b.Currencies)),
 		taxCodes:    make(map[string]*SalesTaxItem, len(b.TaxCodes)),
 		related:     make(map[string]*Transaction, len(b.Related)),
+
+		taxCodeFields: make(map[string]map[string]any, len(b.TaxCodes)),
 	}
 	if len(b.Transaction) == 0 {
 		return nil, fmt.Errorf("bundle has no transaction")
@@ -239,6 +244,11 @@ func (b *Bundle) parse() (*records, error) {
 			return nil, fmt.Errorf("parsing tax code %s: %w", id, err)
 		}
 		r.taxCodes[id] = tc
+		fields := make(map[string]any)
+		if err := json.Unmarshal(data, &fields); err != nil {
+			return nil, fmt.Errorf("parsing tax code %s: %w", id, err)
+		}
+		r.taxCodeFields[id] = fields
 	}
 	for id, data := range b.Related {
 		tx := new(Transaction)

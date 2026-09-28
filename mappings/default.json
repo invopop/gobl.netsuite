@@ -1,0 +1,9 @@
+{
+  "tax_codes": [
+    { "match": {}, "combo": {} },
+    { "match": { "exempt": true }, "combo": { "key": "exempt" } },
+    { "match": { "export": true }, "combo": { "key": "export" } },
+    { "match": { "ecCode": true }, "combo": { "key": "intra-community" } },
+    { "match": { "reverseCharge": true }, "combo": { "key": "reverse-charge" } }
+  ]
+}

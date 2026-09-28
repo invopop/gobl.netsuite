@@ -71,7 +71,7 @@ func TestMappingValidate(t *testing.T) {
 	err := m.Validate()
 	require.Error(t, err)
 	for _, msg := range []string{
-		"tax_codes[0]: id or code required",
+		"tax_codes[0]: one of id, code or match required",
 		"tax_codes[1]: combo required",
 		"rules[0]: id required",
 		`rules[2]: duplicate id "x"`,
@@ -83,7 +83,7 @@ func TestMappingValidate(t *testing.T) {
 }
 
 func TestPresets(t *testing.T) {
-	assert.Contains(t, netsuite.Presets(), "es")
+	assert.Contains(t, netsuite.Presets(), netsuite.PresetDefault)
 	for _, name := range netsuite.Presets() {
 		t.Run(name, func(t *testing.T) {
 			m, err := netsuite.Preset(name)
@@ -96,7 +96,7 @@ func TestPresets(t *testing.T) {
 }
 
 func TestTaxCodeMapping(t *testing.T) {
-	t.Run("default preset from the supplier's country", func(t *testing.T) {
+	t.Run("default preset", func(t *testing.T) {
 		res, err := netsuite.FromInvoice(basicBundle(t))
 		require.NoError(t, err)
 		require.NotNil(t, res.Mapping)
@@ -137,13 +137,17 @@ func TestTaxCodeMapping(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, res.Unmapped, 4)
 		assert.Equal(t, "transaction.item.items[1].taxCode", res.Unmapped[0].Path)
-		assert.Equal(t, "tax code 7 (R-ES) not in mapping, converted from its flags", res.Unmapped[0].Message)
+		assert.Equal(t, "tax code 7 (R-ES) not in mapping, converted at the line's rate", res.Unmapped[0].Message)
 	})
 
-	t.Run("no notices without a mapping", func(t *testing.T) {
-		res, err := netsuite.FromInvoice(basicBundle(t), netsuite.WithPresets())
+	t.Run("without presets", func(t *testing.T) {
+		// Tax codes are only converted by the mappings provided, so even an
+		// exempt code is taxed at the line's rate, with no notices.
+		b := loadBundle(t, "examples/netsuite/invoice_mixed_rates.json")
+		res, err := netsuite.FromInvoice(b, netsuite.WithPresets())
 		require.NoError(t, err)
 		assert.Empty(t, res.Unmapped)
+		assert.Equal(t, tax.KeyZero, res.Invoice.Lines[4].Taxes[0].Key)
 	})
 
 	t.Run("invalid mapping", func(t *testing.T) {
@@ -151,6 +155,64 @@ func TestTaxCodeMapping(t *testing.T) {
 			"rules": [{"id": "x", "jq": ".foo ="}]
 		}`)))
 		assert.ErrorContains(t, err, "mapping: rules[0]: parsing jq")
+	})
+}
+
+func TestTaxCodeMatching(t *testing.T) {
+	// Tax code 6 in the basic example, with its flags changed.
+	convert := func(t *testing.T, flags map[string]any, opts ...netsuite.Option) *tax.Combo {
+		t.Helper()
+		b := basicBundle(t)
+		tc := b.TaxCodes["6"]
+		modify(t, &tc, func(m map[string]any) {
+			for k, v := range flags {
+				m[k] = v
+			}
+		})
+		b.TaxCodes["6"] = tc
+		res, err := netsuite.FromInvoice(b, opts...)
+		require.NoError(t, err)
+		return res.Invoice.Lines[0].Taxes[0]
+	}
+
+	t.Run("tied matches use the later entry", func(t *testing.T) {
+		// Like ESSP-ES, an EU reverse charge code.
+		combo := convert(t, map[string]any{"ecCode": true, "reverseCharge": true, "rate": 0})
+		assert.Equal(t, tax.KeyReverseCharge, combo.Key)
+	})
+
+	t.Run("more criteria take priority", func(t *testing.T) {
+		combo := convert(t, map[string]any{"exempt": true, "rate": 0}, netsuite.WithMapping(mapping(t, `{
+			"tax_codes": [
+				{"match": {"exempt": true, "nexusCountry.id": "ES"}, "combo": {"key": "exempt", "ext": {"es-verifactu-exempt": "E6"}}},
+				{"match": {"exempt": true}, "combo": {"key": "exempt", "ext": {"es-verifactu-exempt": "E2"}}}
+			]
+		}`)))
+		assert.Equal(t, "E6", combo.Ext.Get("es-verifactu-exempt").String())
+	})
+
+	t.Run("custom fields", func(t *testing.T) {
+		combo := convert(t, map[string]any{"exempt": true, "rate": 0, "custrecord_nov_vatex": map[string]any{"id": "7", "refName": "VATEX-EU-G"}},
+			netsuite.WithMapping(mapping(t, `{
+				"tax_codes": [
+					{"match": {"exempt": true, "custrecord_nov_vatex.refName": "VATEX-EU-G"}, "combo": {"key": "export"}}
+				]
+			}`)))
+		assert.Equal(t, tax.KeyExport, combo.Key)
+	})
+
+	t.Run("missing fields match false", func(t *testing.T) {
+		combo := convert(t, nil, netsuite.WithMapping(mapping(t, `{
+			"tax_codes": [{"match": {"custrecord_missing": false}, "combo": {"key": "standard", "percent": "10%"}}]
+		}`)))
+		assert.Equal(t, "10%", combo.Percent.String())
+	})
+
+	t.Run("code takes priority over match", func(t *testing.T) {
+		combo := convert(t, map[string]any{"exempt": true, "rate": 0}, netsuite.WithMapping(mapping(t, `{
+			"tax_codes": [{"code": "S-ES", "combo": {"key": "zero"}}]
+		}`)))
+		assert.Equal(t, tax.KeyZero, combo.Key)
 	})
 }
 
