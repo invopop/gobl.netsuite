@@ -1,4 +1,4 @@
-package goblnetsuite
+package netsuite
 
 import "encoding/json"
 

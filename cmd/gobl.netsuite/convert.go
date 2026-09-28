@@ -8,7 +8,7 @@ import (
 	"os"
 
 	"github.com/invopop/gobl"
-	goblnetsuite "github.com/invopop/gobl.netsuite"
+	netsuite "github.com/invopop/gobl.netsuite"
 	"github.com/spf13/cobra"
 )
 
@@ -49,7 +49,7 @@ func (c *convertOpts) runE(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("reading input: %w", err)
 	}
-	b := new(goblnetsuite.Bundle)
+	b := new(netsuite.Bundle)
 	if err := json.Unmarshal(data, b); err != nil {
 		return fmt.Errorf("parsing bundle: %w", err)
 	}
@@ -59,8 +59,8 @@ func (c *convertOpts) runE(cmd *cobra.Command, args []string) error {
 // convertBundle converts, calculates and outputs the GOBL envelope. Notices
 // about unmapped data are printed to stderr, and an error is returned after
 // the output if the invoice is invalid or its totals differ from NetSuite's.
-func convertBundle(cmd *cobra.Command, b *goblnetsuite.Bundle, outFile string) error {
-	res, err := goblnetsuite.Convert(b)
+func convertBundle(cmd *cobra.Command, b *netsuite.Bundle, outFile string) error {
+	res, err := netsuite.Convert(b)
 	if err != nil {
 		return err
 	}

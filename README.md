@@ -31,14 +31,20 @@ Not converted yet, reported as unmapped and so causing the totals check to fail:
 Conversion works on a `Bundle`: the raw NetSuite transaction record, plus the customer, subsidiary, currency and tax code records it refers to, and for credit memos the related invoices. Records are kept exactly as returned by the REST API, including custom fields.
 
 ```go
+import (
+	"github.com/invopop/gobl"
+	netsuite "github.com/invopop/gobl.netsuite"
+	"github.com/invopop/gobl.netsuite/client"
+)
+
 nc, _ := client.New(accountID, &client.TBA{ /* credentials */ })
 
-b, err := goblnetsuite.FetchInvoice(ctx, nc, "1234") // or FetchCreditMemo
+b, err := netsuite.FetchInvoice(ctx, nc, "1234") // or FetchCreditMemo
 if err != nil {
 	return err
 }
 
-res, err := goblnetsuite.Convert(b) // or FromInvoice, FromCreditMemo
+res, err := netsuite.Convert(b) // or FromInvoice, FromCreditMemo
 if err != nil {
 	return err
 }

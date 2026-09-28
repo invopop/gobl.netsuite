@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	goblnetsuite "github.com/invopop/gobl.netsuite"
+	netsuite "github.com/invopop/gobl.netsuite"
 	"github.com/spf13/cobra"
 )
 
@@ -37,7 +37,7 @@ func (p *probeOpts) cmd() *cobra.Command {
 			"and NETSUITE_TOKEN_SECRET environment variables, or a .env file.",
 	}
 
-	for _, rt := range []string{goblnetsuite.RecordTypeInvoice, goblnetsuite.RecordTypeCreditMemo} {
+	for _, rt := range []string{netsuite.RecordTypeInvoice, netsuite.RecordTypeCreditMemo} {
 		tx := &cobra.Command{
 			Use:   rt + " <id>",
 			Short: "Fetch a " + rt + " and the related records needed to convert it, as a bundle",
@@ -120,9 +120,9 @@ func (p *probeOpts) runTransaction(cmd *cobra.Command, recordType, id string) er
 	if err != nil {
 		return err
 	}
-	fetch := goblnetsuite.FetchInvoice
-	if recordType == goblnetsuite.RecordTypeCreditMemo {
-		fetch = goblnetsuite.FetchCreditMemo
+	fetch := netsuite.FetchInvoice
+	if recordType == netsuite.RecordTypeCreditMemo {
+		fetch = netsuite.FetchCreditMemo
 	}
 	b, err := fetch(cmd.Context(), nc, id)
 	if err != nil {

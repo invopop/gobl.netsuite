@@ -1,4 +1,4 @@
-package goblnetsuite_test
+package netsuite_test
 
 import (
 	"encoding/json"
@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/invopop/gobl"
-	goblnetsuite "github.com/invopop/gobl.netsuite"
+	netsuite "github.com/invopop/gobl.netsuite"
 	"github.com/invopop/gobl/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -33,7 +33,7 @@ func TestExamples(t *testing.T) {
 	for _, file := range files {
 		name := filepath.Base(file)
 		t.Run(strings.TrimSuffix(name, ".json"), func(t *testing.T) {
-			res, err := goblnetsuite.Convert(loadBundle(t, file))
+			res, err := netsuite.Convert(loadBundle(t, file))
 			require.NoError(t, err)
 
 			// Fixed so the output is stable between runs.
@@ -62,11 +62,11 @@ func TestExamples(t *testing.T) {
 	}
 }
 
-func loadBundle(t *testing.T, file string) *goblnetsuite.Bundle {
+func loadBundle(t *testing.T, file string) *netsuite.Bundle {
 	t.Helper()
 	data, err := os.ReadFile(file)
 	require.NoError(t, err)
-	b := new(goblnetsuite.Bundle)
+	b := new(netsuite.Bundle)
 	require.NoError(t, json.Unmarshal(data, b))
 	return b
 }

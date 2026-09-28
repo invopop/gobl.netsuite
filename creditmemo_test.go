@@ -1,9 +1,9 @@
-package goblnetsuite_test
+package netsuite_test
 
 import (
 	"testing"
 
-	goblnetsuite "github.com/invopop/gobl.netsuite"
+	netsuite "github.com/invopop/gobl.netsuite"
 	"github.com/invopop/gobl/bill"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -11,11 +11,11 @@ import (
 
 func TestFromCreditMemo(t *testing.T) {
 	t.Run("created from invoice", func(t *testing.T) {
-		res, err := goblnetsuite.FromCreditMemo(loadBundle(t, "examples/netsuite/creditmemo_created_from.json"))
+		res, err := netsuite.FromCreditMemo(loadBundle(t, "examples/netsuite/creditmemo_created_from.json"))
 		require.NoError(t, err)
 		inv := res.Invoice
 		assert.Equal(t, bill.InvoiceTypeCreditNote, inv.Type)
-		assert.Equal(t, "creditmemo", inv.Meta[goblnetsuite.MetaKeyNetSuiteType])
+		assert.Equal(t, "creditmemo", inv.Meta[netsuite.MetaKeyNetSuiteType])
 		// Created from and applied to the same invoice, referred to once.
 		require.Len(t, inv.Preceding, 1)
 		assert.Equal(t, "1", inv.Preceding[0].Code.String())
@@ -24,7 +24,7 @@ func TestFromCreditMemo(t *testing.T) {
 	})
 
 	t.Run("applied to invoice", func(t *testing.T) {
-		res, err := goblnetsuite.FromCreditMemo(loadBundle(t, "examples/netsuite/creditmemo_applied.json"))
+		res, err := netsuite.FromCreditMemo(loadBundle(t, "examples/netsuite/creditmemo_applied.json"))
 		require.NoError(t, err)
 		require.Len(t, res.Invoice.Preceding, 1)
 		assert.Equal(t, "4", res.Invoice.Preceding[0].Code.String())
@@ -33,7 +33,7 @@ func TestFromCreditMemo(t *testing.T) {
 	t.Run("without related invoices", func(t *testing.T) {
 		b := loadBundle(t, "examples/netsuite/creditmemo_applied.json")
 		b.Related = nil
-		res, err := goblnetsuite.FromCreditMemo(b)
+		res, err := netsuite.FromCreditMemo(b)
 		require.NoError(t, err)
 		assert.Empty(t, res.Invoice.Preceding)
 		require.Len(t, res.Unmapped, 1)
@@ -41,17 +41,17 @@ func TestFromCreditMemo(t *testing.T) {
 	})
 
 	t.Run("rejects invoices", func(t *testing.T) {
-		_, err := goblnetsuite.FromCreditMemo(basicBundle(t))
+		_, err := netsuite.FromCreditMemo(basicBundle(t))
 		assert.ErrorContains(t, err, `expected type "custcred", got "custinvc"`)
 	})
 }
 
 func TestConvert(t *testing.T) {
-	res, err := goblnetsuite.Convert(basicBundle(t))
+	res, err := netsuite.Convert(basicBundle(t))
 	require.NoError(t, err)
 	assert.Equal(t, bill.InvoiceTypeStandard, res.Invoice.Type)
 
-	res, err = goblnetsuite.Convert(loadBundle(t, "examples/netsuite/creditmemo_applied.json"))
+	res, err = netsuite.Convert(loadBundle(t, "examples/netsuite/creditmemo_applied.json"))
 	require.NoError(t, err)
 	assert.Equal(t, bill.InvoiceTypeCreditNote, res.Invoice.Type)
 
@@ -59,6 +59,6 @@ func TestConvert(t *testing.T) {
 	modify(t, &b.Transaction, func(m map[string]any) {
 		m["type"] = map[string]any{"id": "salesord"}
 	})
-	_, err = goblnetsuite.Convert(b)
+	_, err = netsuite.Convert(b)
 	assert.EqualError(t, err, `unsupported transaction type "salesord"`)
 }
