@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 
 	netsuite "github.com/invopop/gobl.netsuite"
+	"github.com/invopop/gobl.netsuite/client"
 	"github.com/spf13/cobra"
 )
 
@@ -21,6 +23,7 @@ type probeOpts struct {
 	convert    bool
 	stripLinks bool
 	replace    []string
+	certName   string
 	limit      int
 	txType     string
 }
@@ -88,6 +91,20 @@ func (p *probeOpts) cmd() *cobra.Command {
 		RunE:  p.runSchema,
 	}
 	cmd.AddCommand(schema)
+
+	cert := &cobra.Command{
+		Use:   "cert",
+		Short: "Generate a key and certificate for OAuth 2.0 client credentials (M2M)",
+		Long: "Generate an ECDSA P-256 private key and a self-signed certificate valid for two years. Upload the\n" +
+			"certificate in NetSuite under Setup > Integration > Manage Authentication > OAuth 2.0 Client\n" +
+			"Credentials (M2M) Setup, then set NETSUITE_CLIENT_ID, NETSUITE_CERTIFICATE_ID and\n" +
+			"NETSUITE_PRIVATE_KEY_FILE to use it.",
+		Args: cobra.NoArgs,
+		RunE: p.runCert,
+	}
+	cert.Flags().StringVarP(&p.outFile, "out", "o", ".", "directory to write netsuite.key and netsuite.crt to")
+	cert.Flags().StringVar(&p.certName, "name", "Invopop", "common name of the certificate")
+	cmd.AddCommand(cert)
 
 	create := &cobra.Command{
 		Use:   "create <record-type> [file]",
@@ -200,6 +217,24 @@ func (p *probeOpts) runSchema(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	return writeJSON(cmd, data)
+}
+
+func (p *probeOpts) runCert(cmd *cobra.Command, _ []string) error {
+	cert, err := client.GenerateCertificate(p.certName, 0)
+	if err != nil {
+		return err
+	}
+	keyFile := filepath.Join(p.outFile, "netsuite.key")
+	certFile := filepath.Join(p.outFile, "netsuite.crt")
+	if err := os.WriteFile(keyFile, cert.PrivateKeyPEM, 0o600); err != nil {
+		return err
+	}
+	if err := os.WriteFile(certFile, cert.CertificatePEM, 0o644); err != nil {
+		return err
+	}
+	cmd.Printf("private key: %s (keep secret)\ncertificate: %s (upload to NetSuite), valid until %s\n",
+		keyFile, certFile, cert.NotAfter.Format("2006-01-02"))
+	return nil
 }
 
 func (p *probeOpts) runCreate(cmd *cobra.Command, args []string) error {

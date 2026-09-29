@@ -17,8 +17,8 @@ type Auth interface {
 // (OAuth 1.0a with HMAC-SHA256 signatures).
 //
 // NetSuite will not allow new integrations to use TBA from 2027.1, with
-// full end of support planned for 2028.2, so an OAuth 2.0 implementation
-// of Auth will be needed for new accounts.
+// full end of support planned for 2028.2, so new integrations should use
+// M2M instead.
 type TBA struct {
 	ConsumerKey    string
 	ConsumerSecret string

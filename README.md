@@ -137,7 +137,32 @@ go test -run TestExamples -update
 
 ## NetSuite Setup
 
-The client uses the [REST web services](https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/chapter_1540391670.html) hosted at `https://<account>.suitetalk.api.netsuite.com`, authenticated with Token-Based Authentication (TBA). Five values are needed:
+The client uses the [REST web services](https://docs.oracle.com/en/cloud/saas/netsuite/ns-online-help/chapter_1540391670.html) hosted at `https://<account>.suitetalk.api.netsuite.com`. Two authentication methods are supported:
+
+- **OAuth 2.0 client credentials (M2M)**, `client.M2M`: the recommended method, and the only one NetSuite allows for new integrations from 2027.1.
+- **Token-Based Authentication (TBA)**, `client.TBA`: for existing integrations, until NetSuite ends support, planned for 2028.2.
+
+### OAuth 2.0 client credentials (M2M)
+
+Access tokens are requested with a JWT signed by a private key, whose certificate is uploaded to NetSuite. There are no refresh tokens or user sessions: tokens can be requested for as long as the certificate is valid, up to two years.
+
+1. Enable **Setup > Company > Enable Features > SuiteCloud**: _REST Web Services_ and _OAuth 2.0_.
+2. On the **Integration** record (Setup > Integration > Manage Integrations), check _Client Credentials (Machine to Machine) Grant_ and the _REST Web Services_ and _RESTlets_ scopes. Note the client ID.
+3. Generate a key and certificate with `go run ./cmd/gobl.netsuite probe cert -o probe/`, which writes `netsuite.key` (keep it secret) and `netsuite.crt`.
+4. In **Setup > Integration > Manage Authentication > OAuth 2.0 Client Credentials (M2M) Setup**, create a mapping for the entity, role and integration, upload `netsuite.crt`, and note the **certificate ID**.
+
+| Variable                    | Where it comes from                 |
+| --------------------------- | ----------------------------------- |
+| `NETSUITE_ACCOUNT_ID`       | Setup > Company > Company Information |
+| `NETSUITE_CLIENT_ID`        | Integration record (step 2)         |
+| `NETSUITE_CERTIFICATE_ID`   | M2M mapping (step 4)                |
+| `NETSUITE_PRIVATE_KEY_FILE` | Path to `netsuite.key` (step 3)     |
+
+The probe uses M2M when `NETSUITE_CERTIFICATE_ID` is set.
+
+### Token-Based Authentication (TBA)
+
+Five values are needed:
 
 | Variable                   | Where it comes from                                                    |
 | -------------------------- | ---------------------------------------------------------------------- |
@@ -149,14 +174,14 @@ The client uses the [REST web services](https://docs.oracle.com/en/cloud/saas/ne
 
 The secrets are only displayed once, when the record is saved. If one is lost, use _Reset Credentials_ on the integration, or revoke the token and create a new one.
 
-### 1. Enable features
+#### 1. Enable features
 
 **Setup > Company > Enable Features > SuiteCloud**, then check:
 
 - _SuiteTalk (Web Services)_: **REST Web Services**
 - _Manage Authentication_: **Token-Based Authentication**
 
-### 2. Create an integration record
+#### 2. Create an integration record
 
 **Setup > Integration > Manage Integrations > New**:
 
@@ -164,7 +189,7 @@ The secrets are only displayed once, when the record is saved. If one is lost, u
 - On the _Authentication_ tab, check **Token-Based Authentication**. _TBA: Authorization Flow_ and _Authorization Code Grant_ are not required.
 - Save, and copy the **Consumer Key** and **Consumer Secret** shown at the bottom of the page.
 
-### 3. Create an access token
+#### 3. Create an access token
 
 **For testing in your own account**, the quickest option is a token for your own user with the Administrator role. NetSuite does not offer the Administrator role in _Setup > Users/Roles > Access Tokens > New_, so instead:
 
@@ -183,7 +208,7 @@ An Administrator token has full access to the account, so revoke it once testing
 
 Assign the role to the integration user (Lists > Employees > Access > Roles), then create the token in **Setup > Users/Roles > Access Tokens > New**, selecting the integration, user and role.
 
-> Token-Based Authentication (TBA) can't be used by new integrations from NetSuite 2027.1, and support is planned to end in 2028.2. OAuth 2.0 support will be added.
+> Token-Based Authentication (TBA) can't be used by new integrations from NetSuite 2027.1, and support is planned to end in 2028.2. Use OAuth 2.0 client credentials for new integrations.
 
 ## Command Line
 
