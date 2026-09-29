@@ -275,6 +275,34 @@ func TestTaxCodeReject(t *testing.T) {
 	})
 }
 
+func TestBuildMappingAndTaxCodeFor(t *testing.T) {
+	override := mapping(t, `{"tax_codes": [{"code": "S-ES", "combo": {"key": "standard", "percent": "10%"}}]}`)
+	m, err := netsuite.BuildMapping("ES", netsuite.WithMapping(override))
+	require.NoError(t, err)
+
+	b := basicBundle(t)
+	e, err := m.TaxCodeFor(b.TaxCodes["6"])
+	require.NoError(t, err)
+	assert.Same(t, override.TaxCodes[0], e, "entries are those of the mappings provided")
+
+	e, err = m.TaxCodeFor(json.RawMessage(`{"id":"10","itemId":"EX-ES","exempt":true}`))
+	require.NoError(t, err)
+	assert.Equal(t, tax.KeyExempt, e.Combo.Key)
+
+	e, err = m.TaxCodeFor(json.RawMessage(`{"id":"5","itemId":"UNDEF-ES"}`))
+	require.NoError(t, err)
+	assert.NotEmpty(t, e.Reject)
+
+	empty, err := netsuite.BuildMapping("ES", netsuite.WithPresets())
+	require.NoError(t, err)
+	e, err = empty.TaxCodeFor(b.TaxCodes["6"])
+	require.NoError(t, err)
+	assert.Nil(t, e)
+
+	_, err = m.TaxCodeFor(json.RawMessage(`{`))
+	assert.Error(t, err)
+}
+
 func withRules(t *testing.T, rules string) netsuite.Option {
 	t.Helper()
 	return netsuite.WithMapping(mapping(t, `{"rules": `+rules+`}`))

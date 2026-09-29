@@ -242,6 +242,20 @@ func (m *Mapping) Validate() error {
 	return errors.Join(errs...)
 }
 
+// TaxCodeFor finds the entry that applies to a tax code record, as returned
+// by the REST API for a "salestaxitem", or nil if none does.
+func (m *Mapping) TaxCodeFor(record json.RawMessage) (*TaxCodeMap, error) {
+	tc := new(SalesTaxItem)
+	if err := json.Unmarshal(record, tc); err != nil {
+		return nil, fmt.Errorf("parsing tax code: %w", err)
+	}
+	fields := make(map[string]any)
+	if err := json.Unmarshal(record, &fields); err != nil {
+		return nil, fmt.Errorf("parsing tax code: %w", err)
+	}
+	return m.taxCode(tc, fields), nil
+}
+
 // taxCode finds the entry for a tax code, preferring matches by ID, then
 // the last matching code, then the entry whose criteria match with the most
 // fields, or the later one if tied.

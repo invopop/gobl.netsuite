@@ -62,6 +62,13 @@ func newOptions(opts []Option) *options {
 // codes according to their properties.
 const PresetDefault = "default"
 
+// BuildMapping provides the effective mapping that a conversion with the
+// options would use for a supplier in the country, after merging the presets
+// and mappings. Useful to show how tax codes will be converted.
+func BuildMapping(country l10n.TaxCountryCode, opts ...Option) (*Mapping, error) {
+	return newOptions(opts).mapping(country)
+}
+
 // mapping builds the effective mapping from the presets and mappings. By
 // default the default preset is used, followed by the one named after the
 // supplier's country, if any.
