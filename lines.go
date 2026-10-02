@@ -284,25 +284,36 @@ func (r *Result) newTaxCombo(path string, it *TransactionItem, country l10n.TaxC
 		return nil, fmt.Errorf("tax code %s not in bundle", it.TaxCode.ID)
 	}
 
-	var combo *tax.Combo
-	m := r.Mapping.taxCode(tc, r.records.taxCodeFields[tc.ID])
-	if m != nil && m.Reject != "" {
-		return nil, fmt.Errorf("tax code %s (%s) rejected: %s", tc.ID, tc.ItemID, m.Reject)
+	combo, m, err := r.Mapping.taxComboFor(tc, r.records.taxCodeFields[tc.ID], firstOf(it.TaxRate1.String(), tc.Rate.String()), country)
+	if err != nil {
+		return nil, err
 	}
-	if m != nil {
-		c := *m.Combo
-		c.Ext = m.Combo.Ext.Clone()
+	if m == nil && len(r.Mapping.TaxCodes) > 0 {
+		r.notice(path+".taxCode", "tax code %s (%s) not in mapping, converted at the line's rate", tc.ID, tc.ItemID)
+	}
+	return combo, nil
+}
+
+// taxComboFor builds the GOBL combo for a tax code charged at a rate, with
+// the country set when it differs from the document's. Returns the mapping
+// entry used, if any.
+func (m *Mapping) taxComboFor(tc *SalesTaxItem, fields map[string]any, rate string, country l10n.TaxCountryCode) (*tax.Combo, *TaxCodeMap, error) {
+	var combo *tax.Combo
+	e := m.taxCode(tc, fields)
+	if e != nil && e.Reject != "" {
+		return nil, e, fmt.Errorf("tax code %s (%s) rejected: %s", tc.ID, tc.ItemID, e.Reject)
+	}
+	if e != nil {
+		c := *e.Combo
+		c.Ext = e.Combo.Ext.Clone()
 		combo = &c
 	} else {
 		combo = new(tax.Combo)
-		if len(r.Mapping.TaxCodes) > 0 {
-			r.notice(path+".taxCode", "tax code %s (%s) not in mapping, converted at the line's rate", tc.ID, tc.ItemID)
-		}
 	}
 
 	if combo.Category == "" {
 		if tc.TaxType == nil || tc.TaxType.RefName == "" {
-			return nil, fmt.Errorf("tax code %s: missing tax type", tc.ID)
+			return nil, e, fmt.Errorf("tax code %s: missing tax type", tc.ID)
 		}
 		combo.Category = cbc.Code(strings.ToUpper(tc.TaxType.RefName))
 	}
@@ -315,10 +326,9 @@ func (r *Result) newTaxCombo(path string, it *TransactionItem, country l10n.TaxC
 	// Taxable combos without a rate or percent take the line's percent, as
 	// the line's rate may differ from the tax code's default.
 	if combo.Percent == nil && combo.Rate == "" && (combo.Key == "" || combo.Key == tax.KeyStandard) {
-		rate := firstOf(it.TaxRate1.String(), tc.Rate.String())
 		p, err := num.PercentageFromString(rate + "%")
 		if err != nil {
-			return nil, fmt.Errorf("tax rate %q: %w", rate, err)
+			return nil, e, fmt.Errorf("tax rate %q: %w", rate, err)
 		}
 		if p.IsZero() && combo.Key == "" {
 			combo.Key = tax.KeyZero
@@ -326,7 +336,7 @@ func (r *Result) newTaxCombo(path string, it *TransactionItem, country l10n.TaxC
 			combo.Percent = &p
 		}
 	}
-	return combo, nil
+	return combo, e, nil
 }
 
 func sameTaxCode(a, b *TransactionItem) bool {

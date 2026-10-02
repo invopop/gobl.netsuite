@@ -19,6 +19,8 @@ Not converted yet, reported as unmapped and so causing the totals check to fail:
 
 **Header discount rounding:** with a header discount across several tax rates, NetSuite rounds the tax of the lines and of the discount separately, so its tax total can differ by up to a cent per rate from the tax of the net base calculated by GOBL. `CheckTotals` accepts these differences, reporting them in `Result.Warnings`.
 
+**Received invoices:** GOBL invoices received from suppliers can be prepared as NetSuite **vendor bills**, or **vendor credits** for credit notes, with `NewPurchase`. See [Purchases](#purchases).
+
 ## Packages
 
 - `github.com/invopop/gobl.netsuite` - conversion between NetSuite records and GOBL.
@@ -127,9 +129,34 @@ Tax code properties are set consistently in the countries supported by NetSuite'
 
 Rules cannot access the environment or files, and each run on an element is limited to one second by default (`WithRuleTimeout`). As jq numbers are floating point, rules should move or look up amounts, and leave calculations to GOBL.
 
+### Purchases
+
+`NewPurchase` prepares a vendor bill or vendor credit from a calculated GOBL invoice received from a supplier. The caller finds the NetSuite records it refers to, the subsidiary, vendor, currency and expense account, and passes them in `PurchaseOptions`:
+
+```go
+idx, err := netsuite.NewTaxCodeIndex(mapping, taxCodeRecords) // the account's salestaxitem records
+out, err := netsuite.NewPurchase(inv, &netsuite.PurchaseOptions{
+	Subsidiary: "3", Country: "ES", Vendor: "8", Currency: "1",
+	Account:    "133", // the expense account for every line
+	ExternalID: siloEntryID,
+	TaxCodes:   idx,
+})
+id, err := nc.CreateRecord(ctx, out.RecordType, out.Body)
+```
+
+- **Lines:** each line, charge and discount becomes an expense line in the account given, with the item name as its memo.
+- **Tax codes:** `TaxCodeIndex` reverses the mapping: it finds the account's tax code whose conversion matches each line's tax combo, in the subsidiary's country, limited to codes available on purchases. Intra-community supplies are recorded with a reverse charge code when there is no intra-community purchase code, as the buyer accounts for the tax.
+- **Tax amounts:** each line's tax amount (`tax1Amt`) is set, and balanced per rate, so NetSuite's tax total matches the invoice's instead of rounding per line.
+- **Number:** the supplier's series and code become the reference number (`tranId`), as `SERIES-CODE`.
+- **Not supported yet:** retained taxes such as withholding, lines with more than one tax, and applying vendor credits to the bills they correct.
+
+`CheckRecordTotals` compares the record NetSuite created with the invoice, allowing a subunit per tax rate.
+
+`NewVendor` prepares a vendor from a GOBL party, such as an invoice's supplier: its name, tax ID, first email and telephone, and first address as the default billing address. Payment details are never included. `CompareVendor` lists the party's details that differ from an existing vendor's, ignoring case, spacing and details the party doesn't have, so they can be reviewed rather than overwritten.
+
 ### Examples
 
-`examples/netsuite` contains bundles taken from a test account, with links removed to anonymise the account. The expected GOBL output for each is in `examples/netsuite/out`, and is regenerated with:
+`examples/netsuite` contains bundles taken from a test account, with links removed to anonymise the account. `examples/taxcodes` contains the same account's tax codes, and `examples/gobl` received invoices used to test purchases. The expected GOBL output for each is in `examples/netsuite/out`, and is regenerated with:
 
 ```bash
 go test -run TestExamples -update
