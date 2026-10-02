@@ -131,6 +131,13 @@ func (p *probeOpts) cmd() *cobra.Command {
 	update.Flags().StringSliceVar(&p.replace, "replace", nil, "sublists to replace entirely, e.g. item")
 	cmd.AddCommand(update)
 
+	cmd.AddCommand(&cobra.Command{
+		Use:   "upsert <record-type> <external-id> [file]",
+		Short: "Create or update a record by external ID from JSON",
+		Args:  cobra.RangeArgs(2, 3),
+		RunE:  p.runUpsert,
+	})
+
 	return cmd
 }
 
@@ -281,6 +288,18 @@ func (p *probeOpts) runUpdate(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	return nc.UpdateRecord(cmd.Context(), args[0], args[1], body, p.replace...)
+}
+
+func (p *probeOpts) runUpsert(cmd *cobra.Command, args []string) error {
+	nc, err := p.netsuiteClient()
+	if err != nil {
+		return err
+	}
+	body, err := readBody(cmd, args[2:], true)
+	if err != nil {
+		return err
+	}
+	return nc.UpsertRecord(cmd.Context(), args[0], args[1], body)
 }
 
 // readBody reads a JSON body from the file in args, or stdin when "-" or,

@@ -110,6 +110,17 @@ func TestUpdateRecord(t *testing.T) {
 	require.NoError(t, nc.UpdateRecord(t.Context(), "creditmemo", "12", map[string]string{"memo": "x"}, "item"))
 }
 
+func TestUpsertRecord(t *testing.T) {
+	nc := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPut, r.Method)
+		assert.Equal(t, "/services/rest/record/v1/customrecord_x/eid:job-1", r.URL.Path)
+		body, _ := io.ReadAll(r.Body)
+		assert.JSONEq(t, `{"name":"x"}`, string(body))
+		w.WriteHeader(http.StatusNoContent)
+	})
+	require.NoError(t, nc.UpsertRecord(t.Context(), "customrecord_x", "job-1", map[string]string{"name": "x"}))
+}
+
 func TestTransformRecord(t *testing.T) {
 	nc := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)

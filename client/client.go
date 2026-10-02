@@ -135,6 +135,21 @@ func (c *Client) UpdateRecord(ctx context.Context, recordType, id string, body a
 	return c.do(req, nil)
 }
 
+// UpsertRecord creates or updates the record with the given external ID, so
+// repeating a request doesn't create duplicates.
+func (c *Client) UpsertRecord(ctx context.Context, recordType, externalID string, body any) error {
+	data, err := json.Marshal(body)
+	if err != nil {
+		return err
+	}
+	p := fmt.Sprintf("%s/%s/eid:%s", recordPath, url.PathEscape(recordType), url.PathEscape(externalID))
+	req, err := c.newRequest(ctx, http.MethodPut, p, nil, bytes.NewReader(data))
+	if err != nil {
+		return err
+	}
+	return c.do(req, nil)
+}
+
 // TransformRecord creates a new record of the target type from an existing
 // record, such as a credit memo from an invoice, returning its internal ID.
 // The body may override fields of the new record, and can be nil.
