@@ -1,0 +1,132 @@
+{
+	"$regime": "ES",
+	"uuid": "0190a63b-6f6c-7d6e-9a2c-3d4e5f60718a",
+	"type": "standard",
+	"code": "10",
+	"issue_date": "2026-09-24",
+	"currency": "EUR",
+	"tax": {
+		"rounding": "currency"
+	},
+	"supplier": {
+		"name": "Invopop SL",
+		"tax_id": {
+			"country": "ES",
+			"code": "B85905495"
+		},
+		"addresses": [
+			{
+				"street": "Calle Pradillo, 42",
+				"locality": "Madrid",
+				"code": "28002",
+				"country": "ES"
+			}
+		]
+	},
+	"customer": {
+		"name": "Telefónica de España, S.A.U.",
+		"tax_id": {
+			"country": "ES",
+			"code": "A82018474"
+		},
+		"addresses": [
+			{
+				"street": "Gran Vía 28",
+				"locality": "Madrid",
+				"code": "28013",
+				"country": "ES"
+			}
+		]
+	},
+	"lines": [
+		{
+			"i": 1,
+			"quantity": "15",
+			"item": {
+				"name": "SVC-001 Consulting",
+				"price": "150.00"
+			},
+			"sum": "2250.00",
+			"taxes": [
+				{
+					"cat": "VAT",
+					"key": "standard",
+					"percent": "21%"
+				}
+			],
+			"total": "2250.00"
+		},
+		{
+			"i": 2,
+			"quantity": "1",
+			"item": {
+				"name": "SVC-002 Support",
+				"price": "400.00"
+			},
+			"sum": "400.00",
+			"taxes": [
+				{
+					"cat": "VAT",
+					"key": "standard",
+					"percent": "21%"
+				}
+			],
+			"total": "400.00"
+		}
+	],
+	"discounts": [
+		{
+			"i": 1,
+			"reason": "DISC-001 Discount",
+			"amount": "250.00",
+			"taxes": [
+				{
+					"cat": "VAT",
+					"key": "standard",
+					"percent": "21%"
+				}
+			]
+		}
+	],
+	"payment": {
+		"terms": {
+			"due_dates": [
+				{
+					"date": "2026-10-24",
+					"amount": "2904.00",
+					"percent": "100%"
+				}
+			],
+			"notes": "Net 30"
+		}
+	},
+	"totals": {
+		"sum": "2650.00",
+		"discount": "250.00",
+		"total": "2400.00",
+		"taxes": {
+			"categories": [
+				{
+					"code": "VAT",
+					"rates": [
+						{
+							"key": "standard",
+							"base": "2400.00",
+							"percent": "21%",
+							"amount": "504.00"
+						}
+					],
+					"amount": "504.00"
+				}
+			],
+			"sum": "504.00"
+		},
+		"tax": "504.00",
+		"total_with_tax": "2904.00",
+		"payable": "2904.00"
+	},
+	"meta": {
+		"netsuite-id": "10",
+		"netsuite-type": "invoice"
+	}
+}

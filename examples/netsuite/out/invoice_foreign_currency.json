@@ -1,0 +1,120 @@
+{
+	"$regime": "ES",
+	"uuid": "0190a63b-6f6c-7d6e-9a2c-3d4e5f60718a",
+	"type": "standard",
+	"code": "7",
+	"issue_date": "2026-09-24",
+	"currency": "USD",
+	"exchange_rates": [
+		{
+			"from": "USD",
+			"to": "EUR",
+			"amount": "0.8567"
+		}
+	],
+	"tax": {
+		"rounding": "currency"
+	},
+	"supplier": {
+		"name": "Invopop SL",
+		"tax_id": {
+			"country": "ES",
+			"code": "B85905495"
+		},
+		"addresses": [
+			{
+				"street": "Calle Pradillo, 42",
+				"locality": "Madrid",
+				"code": "28002",
+				"country": "ES"
+			}
+		]
+	},
+	"customer": {
+		"name": "Stripe, Inc.",
+		"addresses": [
+			{
+				"street": "354 Oyster Point Blvd",
+				"locality": "South San Francisco",
+				"region": "CA",
+				"code": "94080",
+				"country": "US"
+			}
+		]
+	},
+	"lines": [
+		{
+			"i": 1,
+			"quantity": "12.5",
+			"item": {
+				"name": "SVC-001 Consulting",
+				"price": "199.99"
+			},
+			"sum": "2499.88",
+			"taxes": [
+				{
+					"cat": "VAT",
+					"key": "zero",
+					"percent": "0%"
+				}
+			],
+			"total": "2499.88"
+		},
+		{
+			"i": 2,
+			"quantity": "1",
+			"item": {
+				"name": "SVC-002 Support",
+				"price": "49.95"
+			},
+			"sum": "49.95",
+			"taxes": [
+				{
+					"cat": "VAT",
+					"key": "zero",
+					"percent": "0%"
+				}
+			],
+			"total": "49.95"
+		}
+	],
+	"payment": {
+		"terms": {
+			"due_dates": [
+				{
+					"date": "2026-09-24",
+					"amount": "2549.83",
+					"percent": "100%"
+				}
+			]
+		}
+	},
+	"totals": {
+		"sum": "2549.83",
+		"total": "2549.83",
+		"taxes": {
+			"categories": [
+				{
+					"code": "VAT",
+					"rates": [
+						{
+							"key": "zero",
+							"base": "2549.83",
+							"percent": "0%",
+							"amount": "0.00"
+						}
+					],
+					"amount": "0.00"
+				}
+			],
+			"sum": "0.00"
+		},
+		"tax": "0.00",
+		"total_with_tax": "2549.83",
+		"payable": "2549.83"
+	},
+	"meta": {
+		"netsuite-id": "7",
+		"netsuite-type": "invoice"
+	}
+}

@@ -1,0 +1,456 @@
+{
+  "transaction": {
+    "amountPaid": 0,
+    "amountRemaining": 1215,
+    "amountRemainingTotalBox": 1215,
+    "billAddress": "SAP SE\nDietmar-Hopp-Allee 16\nWalldorf  69190\nGermany",
+    "billAddressList": {
+      "id": "7",
+      "refName": "Walldorf"
+    },
+    "billingAddress": {
+      "addr1": "Dietmar-Hopp-Allee 16",
+      "addrText": "SAP SE\nDietmar-Hopp-Allee 16\nWalldorf  69190\nGermany",
+      "addressee": "SAP SE",
+      "city": "Walldorf",
+      "country": {
+        "id": "DE",
+        "refName": "Germany"
+      },
+      "override": false,
+      "zip": "69190"
+    },
+    "billingAddress_text": "SAP SE\nDietmar-Hopp-Allee 16\nWalldorf  69190\nGermany",
+    "canHaveStackable": false,
+    "createdDate": "2026-09-24T21:28:00Z",
+    "currency": {
+      "id": "1",
+      "refName": "ESP"
+    },
+    "customForm": {
+      "id": "91",
+      "refName": "Standard Service Invoice"
+    },
+    "discountTotal": 0,
+    "dueDate": "2026-09-24",
+    "email": "invoices@sap.example",
+    "entity": {
+      "id": "15",
+      "refName": "4 SAP SE"
+    },
+    "exchangeRate": 1,
+    "expCost": {
+      "items": [],
+      "totalResults": 0
+    },
+    "expCostDiscPrint": false,
+    "id": "6",
+    "item": {
+      "items": [
+        {
+          "account": {
+            "id": "137",
+            "refName": "137"
+          },
+          "amount": 1215,
+          "excludeFromRateRequest": false,
+          "grossAmt": 1215,
+          "item": {
+            "id": "16",
+            "refName": "NONINV-001 Shipping"
+          },
+          "itemSubtype": {
+            "id": "Sale",
+            "refName": "Sale"
+          },
+          "itemType": {
+            "id": "NonInvtPart",
+            "refName": "NonInvtPart"
+          },
+          "line": 1,
+          "lineUniqueKey": "38",
+          "marginal": false,
+          "price": {
+            "id": "1",
+            "refName": "Base Price"
+          },
+          "printItems": false,
+          "quantity": 25,
+          "rate": 48.6,
+          "rateSchedule": "0\u000525.00",
+          "tax1Amt": 0,
+          "taxCode": {
+            "id": "11",
+            "refName": "VAT:ESSS-ES"
+          },
+          "taxRate1": 0
+        }
+      ],
+      "totalResults": 1
+    },
+    "itemCost": {
+      "items": [],
+      "totalResults": 0
+    },
+    "itemCostDiscPrint": false,
+    "lastModifiedDate": "2026-09-24T21:28:00Z",
+    "memo": "Test: EU intra-community supply",
+    "originator": "restWebServices",
+    "postingPeriod": {
+      "id": "30",
+      "refName": "Sep 2026"
+    },
+    "prevDate": "2026-09-24",
+    "salesEffectiveDate": "2026-09-24",
+    "shipAddress": "SAP SE\nDietmar-Hopp-Allee 16\nWalldorf  69190\nGermany",
+    "shipAddressList": {
+      "id": "7",
+      "refName": "Walldorf"
+    },
+    "shipDate": "2026-09-24",
+    "shipIsResidential": false,
+    "shipOverride": false,
+    "shippingAddress": {
+      "addr1": "Dietmar-Hopp-Allee 16",
+      "addrText": "SAP SE\nDietmar-Hopp-Allee 16\nWalldorf  69190\nGermany",
+      "addressee": "SAP SE",
+      "city": "Walldorf",
+      "country": {
+        "id": "DE",
+        "refName": "Germany"
+      },
+      "override": false,
+      "zip": "69190"
+    },
+    "shippingAddress_text": "SAP SE\nDietmar-Hopp-Allee 16\nWalldorf  69190\nGermany",
+    "source": {
+      "id": "REST Web Services",
+      "refName": "REST Web Services"
+    },
+    "sourceSystem": {
+      "id": "restWebServices",
+      "refName": "REST Web Services"
+    },
+    "status": {
+      "id": "Open",
+      "refName": "Open"
+    },
+    "subsidiary": {
+      "id": "3",
+      "refName": "Invopop SL"
+    },
+    "subtotal": 1215,
+    "taxTotal": 0,
+    "time": {
+      "items": [],
+      "totalResults": 0
+    },
+    "timeDiscPrint": false,
+    "toBeEmailed": false,
+    "toBeFaxed": false,
+    "toBePrinted": false,
+    "total": 1215,
+    "tranDate": "2026-09-24",
+    "tranId": "6",
+    "transactionNumber": "CUSTINVC6",
+    "type": {
+      "id": "custinvc",
+      "refName": "custinvc"
+    },
+    "vatRegNum": "DE143454214"
+  },
+  "currencies": {
+    "1": {
+      "currencyPrecision": 2,
+      "displaySymbol": "€",
+      "exchangeRate": 1,
+      "formatSample": "€1.234,56",
+      "id": "1",
+      "isBaseCurrency": true,
+      "isInactive": false,
+      "lastModifiedDate": "2026-09-23T13:08:00Z",
+      "locale": {
+        "id": "es_ES_EURO",
+        "refName": "Spain (Spanish EURO)"
+      },
+      "name": "ESP",
+      "overrideCurrencyFormat": false,
+      "symbol": "EUR",
+      "symbolPlacement": {
+        "id": "1",
+        "refName": "Before Number"
+      }
+    }
+  },
+  "customer": {
+    "accessRole": {
+      "id": "14",
+      "refName": "Customer Centre"
+    },
+    "addressBook": {
+      "items": [
+        {
+          "addressBookAddress": {
+            "addr1": "Dietmar-Hopp-Allee 16",
+            "addrText": "SAP SE\nDietmar-Hopp-Allee 16\nWalldorf  69190\nGermany",
+            "addressee": "SAP SE",
+            "city": "Walldorf",
+            "country": {
+              "id": "DE",
+              "refName": "Germany"
+            },
+            "override": false,
+            "zip": "69190"
+          },
+          "addressBookAddress_text": "SAP SE\nDietmar-Hopp-Allee 16\nWalldorf  69190\nGermany",
+          "addressId": "7",
+          "defaultBilling": true,
+          "defaultShipping": true,
+          "id": 7,
+          "internalId": 7,
+          "isResidential": false,
+          "label": "Walldorf"
+        }
+      ],
+      "totalResults": 1
+    },
+    "aging": 7015,
+    "aging1": 0,
+    "aging2": 0,
+    "aging3": 0,
+    "aging4": 0,
+    "alcoholRecipientType": {
+      "id": "CONSUMER",
+      "refName": "Consumer"
+    },
+    "balance": 7015,
+    "companyName": "SAP SE",
+    "contactList": {
+      "count": 0,
+      "hasMore": false,
+      "items": [],
+      "offset": 0,
+      "totalResults": 0
+    },
+    "contactRoles": {
+      "items": [],
+      "totalResults": 0
+    },
+    "creditHoldOverride": {
+      "id": "AUTO",
+      "refName": "Auto"
+    },
+    "currency": {
+      "id": "1",
+      "refName": "ESP"
+    },
+    "currencyList": {
+      "items": [
+        {
+          "balance": 7015,
+          "currency": {
+            "id": "1",
+            "refName": "ESP"
+          },
+          "depositBalance": 0,
+          "displaySymbol": "€",
+          "overdueBalance": 0,
+          "overrideCurrencyFormat": false,
+          "symbolPlacement": {
+            "id": "1",
+            "refName": "Before Number"
+          },
+          "unbilledOrders": 0
+        }
+      ],
+      "totalResults": 1
+    },
+    "customForm": {
+      "id": "-2",
+      "refName": "Standard Customer Form"
+    },
+    "dateCreated": "2026-09-24T21:26:00Z",
+    "daysOverdue": 0,
+    "defaultAddress": "SAP SE\nDietmar-Hopp-Allee 16\nWalldorf  69190\nGermany",
+    "depositBalance": 0,
+    "email": "invoices@sap.example",
+    "emailPreference": {
+      "id": "DEFAULT",
+      "refName": "Default"
+    },
+    "emailTransactions": false,
+    "entityId": "4 SAP SE",
+    "entityStatus": {
+      "id": "13",
+      "refName": "CUSTOMER-Closed Won"
+    },
+    "faxTransactions": false,
+    "giveAccess": false,
+    "groupPricing": {
+      "items": [],
+      "totalResults": 0
+    },
+    "id": "15",
+    "isBudgetApproved": false,
+    "isInactive": false,
+    "isPerson": false,
+    "itemPricing": {
+      "items": [],
+      "totalResults": 0
+    },
+    "lastModifiedDate": "2026-09-24T21:26:00Z",
+    "monthlyClosing": {
+      "id": "31",
+      "refName": "End of the Month"
+    },
+    "overdueBalance": 0,
+    "printTransactions": false,
+    "receivablesAccount": {
+      "id": "-10",
+      "refName": "Use System Preference"
+    },
+    "sendEmail": false,
+    "shipComplete": false,
+    "shippingCarrier": {
+      "id": "nonups",
+      "refName": "FedEx/USPS/More"
+    },
+    "subsidiary": {
+      "id": "3",
+      "refName": "Invopop SL"
+    },
+    "taxExempt": true,
+    "taxable": false,
+    "unbilledOrders": 0,
+    "vatRegNumber": "DE143454214"
+  },
+  "subsidiary": {
+    "checklayout": {
+      "id": "50",
+      "refName": "Standard Check Layout"
+    },
+    "country": {
+      "id": "ES",
+      "refName": "Spain"
+    },
+    "currency": {
+      "id": "1",
+      "refName": "ESP"
+    },
+    "edition": {
+      "id": "XX",
+      "refName": "XX"
+    },
+    "federalIdNumber": "B85905495",
+    "fiscalCalendar": {
+      "id": "1",
+      "refName": "Standard Fiscal Calendar"
+    },
+    "id": "3",
+    "isElimination": false,
+    "isInactive": false,
+    "lastModifiedDate": "2026-09-23T12:59:00Z",
+    "legalName": "Invopop SL",
+    "logo": {
+      "id": "1",
+      "refName": "InvopopLogo.jpeg"
+    },
+    "mainAddress": {
+      "addr1": "Calle Pradillo, 42",
+      "addrText": "Invopop SL\r\nCalle Pradillo, 42\r\nMadrid  28002\r\nSpain",
+      "addressee": "Invopop SL",
+      "city": "Madrid",
+      "country": {
+        "id": "ES",
+        "refName": "Spain"
+      },
+      "override": false,
+      "zip": "28002"
+    },
+    "name": "Invopop SL",
+    "nexus": {
+      "items": [
+        {
+          "country": "ES",
+          "nexusId": {
+            "id": "1",
+            "refName": "Spain "
+          }
+        }
+      ],
+      "totalResults": 1
+    },
+    "pageLogo": {
+      "id": "1",
+      "refName": "InvopopLogo.jpeg"
+    },
+    "parent": {
+      "id": "1",
+      "refName": "Parent Company"
+    },
+    "returnAddress": {
+      "addrText": "Spain",
+      "country": {
+        "id": "ES",
+        "refName": "Spain"
+      },
+      "override": false
+    },
+    "shippingAddress": {
+      "addrText": "Spain",
+      "country": {
+        "id": "ES",
+        "refName": "Spain"
+      },
+      "override": false
+    },
+    "showSubsidiaryName": false,
+    "taxFiscalCalendar": {
+      "id": "1",
+      "refName": "Standard Fiscal Calendar"
+    }
+  },
+  "taxCodes": {
+    "11": {
+      "available": {
+        "id": "SALE",
+        "refName": "Sales Transactions"
+      },
+      "description": "EU intra-community sales",
+      "ecCode": true,
+      "excludeFromTaxReports": false,
+      "exempt": false,
+      "export": false,
+      "id": "11",
+      "includeChildren": false,
+      "isDefault": false,
+      "isInactive": false,
+      "itemId": "ESSS-ES",
+      "itemType": "TaxItem",
+      "nexusCountry": {
+        "id": "ES",
+        "refName": "ES"
+      },
+      "purchaseAccount": {
+        "id": "126",
+        "refName": "126"
+      },
+      "rate": 0,
+      "reverseCharge": false,
+      "saleAccount": {
+        "id": "125",
+        "refName": "125"
+      },
+      "service": true,
+      "subsidiary": {},
+      "taxAgency": {
+        "id": "2",
+        "refName": "Tax Agency ES"
+      },
+      "taxType": {
+        "id": "1",
+        "refName": "VAT"
+      }
+    }
+  }
+}
