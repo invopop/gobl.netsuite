@@ -40,7 +40,7 @@ func (r *Result) applyRules(timeout time.Duration) error {
 	}
 	for _, scope := range scopes {
 		for _, rule := range r.Mapping.Rules {
-			if rule.scope() != scope {
+			if rule.scope() != scope || rule.direction() != RuleReceive {
 				continue
 			}
 			code, err := compileRule(rule)
@@ -70,6 +70,57 @@ func (r *Result) applyRules(timeout time.Duration) error {
 				n++
 			}
 		}
+	}
+	return nil
+}
+
+// sendElement is part of a NetSuite record prepared from a GOBL document,
+// with the GOBL element it was prepared from, for send rules.
+type sendElement struct {
+	scope  Scope
+	target *map[string]any
+	src    any
+}
+
+// applySendRules runs a mapping's send rules on the record being prepared,
+// scope by scope, with document rules last. The external ID can't be
+// changed, as it's how a record is found again when a job is retried.
+func applySendRules(m *Mapping, body *map[string]any, source any, elements []*sendElement) error {
+	if m == nil || len(m.Rules) == 0 {
+		return nil
+	}
+	src, err := toValue(source)
+	if err != nil {
+		return fmt.Errorf("preparing source: %w", err)
+	}
+	externalID := (*body)["externalId"]
+	for _, scope := range sendScopes {
+		for _, rule := range m.Rules {
+			if rule.Disabled || rule.direction() != RuleSend || rule.scope() != scope {
+				continue
+			}
+			code, err := compileRule(rule)
+			if err != nil {
+				return fmt.Errorf("rule %q: %w", rule.ID, err)
+			}
+			n := 0
+			for _, el := range elements {
+				if el.scope != scope {
+					continue
+				}
+				elSrc, err := toValue(el.src)
+				if err != nil {
+					return fmt.Errorf("rule %q: preparing source: %w", rule.ID, err)
+				}
+				if err := applyRule(code, el.target, src, elSrc, scope, defaultRuleTimeout); err != nil {
+					return fmt.Errorf("rule %q: %s %d: %w", rule.ID, scope, n, err)
+				}
+				n++
+			}
+		}
+	}
+	if (*body)["externalId"] != externalID {
+		return errors.New("rules can't change the externalId")
 	}
 	return nil
 }

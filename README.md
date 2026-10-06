@@ -127,6 +127,20 @@ Tax code properties are set consistently in the countries supported by NetSuite'
 
 `$source` is always the whole bundle, and `$scope` the rule's scope. Rules run by scope in the order above, and in mapping order within a scope, so document rules see the result of all the others and are the only ones that should add or remove elements. Custom fields referred to by a rule are not reported as unmapped.
 
+**Send rules** have `"direction": "send"`, and change the NetSuite records prepared from GOBL documents, the reverse of the above: `.` is the NetSuite record or line, `$src` the GOBL element, and `$source` the GOBL document. They run after the record is prepared, by scope in this order:
+
+| Scope | `.` | `$src` |
+| --- | --- | --- |
+| `vendor` | a new vendor | the party |
+| `line` | each expense line of a vendor bill or credit | its GOBL line, charge or discount |
+| `document` (default) | the vendor bill or credit | the invoice |
+
+```json
+{ "id": "fibre-account", "direction": "send", "scope": "line", "jq": "if ($src.item.name // \"\") | test(\"(?i)fibre\") then .account = {id: \"131\"} else . end" }
+```
+
+Send rules can't change a record's `externalId`, as it's how the record is found again when sending is retried. Conversions from NetSuite ignore send rules, and sending ignores receive rules.
+
 Rules cannot access the environment or files, and each run on an element is limited to one second by default (`WithRuleTimeout`). As jq numbers are floating point, rules should move or look up amounts, and leave calculations to GOBL.
 
 ### Purchases

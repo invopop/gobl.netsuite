@@ -22,6 +22,8 @@ type VendorOptions struct {
 	ExternalID string
 	// Fields are added to the record, such as custom fields.
 	Fields map[string]any
+	// Mapping provides vendor send rules to apply, with $src the party.
+	Mapping *Mapping
 }
 
 // NewVendor prepares a vendor from a GOBL party, such as an invoice's
@@ -83,6 +85,9 @@ func NewVendor(p *org.Party, o *VendorOptions) (*Outbound, error) {
 	}
 	if len(p.Identities) > 0 {
 		out.notice("identities", "identities other than the tax ID are not recorded")
+	}
+	if err := applySendRules(o.Mapping, &body, p, []*sendElement{{scope: ScopeVendor, target: &body, src: p}}); err != nil {
+		return nil, err
 	}
 	out.Body = body
 	return out, nil

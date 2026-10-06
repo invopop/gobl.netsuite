@@ -49,6 +49,10 @@ type PurchaseOptions struct {
 	PendingApproval bool
 	// TaxCodes finds the account's tax code for each tax combo.
 	TaxCodes *TaxCodeIndex
+	// Mapping provides send rules to apply to the record, if any: line
+	// rules to each expense line, with $src its GOBL line, charge or
+	// discount, then document rules, with $src the invoice.
+	Mapping *Mapping
 }
 
 // Outbound is a NetSuite record body prepared from a GOBL document.
@@ -66,13 +70,14 @@ func (o *Outbound) notice(path, format string, args ...any) {
 }
 
 // expenseLine is a line of a vendor bill or credit's expense sublist, with
-// the tax combo used to find its tax code.
+// the tax combo used to find its tax code, and the GOBL element it's for.
 type expenseLine struct {
 	amount num.Amount
 	tax    num.Amount
 	combo  *tax.Combo
 	code   *SalesTaxItem
 	memo   string
+	src    any
 }
 
 // NewPurchase prepares a vendor bill, or a vendor credit for a credit note,
@@ -109,7 +114,16 @@ func NewPurchase(inv *bill.Invoice, o *PurchaseOptions) (*Outbound, error) {
 		return nil, err
 	}
 	out.Body = purchaseHeader(inv, o, out.RecordType)
-	out.Body["expense"] = map[string]any{"items": expenseItems(lines, o, exp)}
+	items := expenseItems(lines, o, exp)
+	out.Body["expense"] = map[string]any{"items": items}
+	elements := make([]*sendElement, 0, len(items)+1)
+	for i := range items {
+		elements = append(elements, &sendElement{scope: ScopeLine, target: &items[i], src: lines[i].src})
+	}
+	elements = append(elements, &sendElement{scope: ScopeDocument, target: &out.Body, src: inv})
+	if err := applySendRules(o.Mapping, &out.Body, inv, elements); err != nil {
+		return nil, err
+	}
 	if out.RecordType == RecordTypeVendorCredit && len(inv.Preceding) > 0 {
 		out.notice("preceding", "the vendor credit is not applied to the bill it corrects")
 	}
@@ -131,21 +145,21 @@ func expenseLines(inv *bill.Invoice) ([]*expenseLine, error) {
 		if l.Total == nil {
 			return nil, fmt.Errorf("line %d: missing total", i+1)
 		}
-		lines = append(lines, &expenseLine{amount: *l.Total, combo: combo, memo: lineMemo(l)})
+		lines = append(lines, &expenseLine{amount: *l.Total, combo: combo, memo: lineMemo(l), src: l})
 	}
 	for i, c := range inv.Charges {
 		combo, err := lineCombo(c.Taxes)
 		if err != nil {
 			return nil, fmt.Errorf("charge %d: %w", i+1, err)
 		}
-		lines = append(lines, &expenseLine{amount: c.Amount, combo: combo, memo: firstOf(c.Reason, "Charge")})
+		lines = append(lines, &expenseLine{amount: c.Amount, combo: combo, memo: firstOf(c.Reason, "Charge"), src: c})
 	}
 	for i, d := range inv.Discounts {
 		combo, err := lineCombo(d.Taxes)
 		if err != nil {
 			return nil, fmt.Errorf("discount %d: %w", i+1, err)
 		}
-		lines = append(lines, &expenseLine{amount: d.Amount.Invert(), combo: combo, memo: firstOf(d.Reason, "Discount")})
+		lines = append(lines, &expenseLine{amount: d.Amount.Invert(), combo: combo, memo: firstOf(d.Reason, "Discount"), src: d})
 	}
 	if len(lines) == 0 {
 		return nil, fmt.Errorf("the invoice has no lines")

@@ -127,6 +127,28 @@ const (
 	ScopePreceding Scope = "preceding"
 )
 
+// ScopeVendor rules apply to vendors created from GOBL parties, in the send
+// direction.
+const ScopeVendor Scope = "vendor"
+
+// RuleDirection is whether a rule applies when converting NetSuite records
+// into GOBL, or GOBL documents into NetSuite records.
+type RuleDirection string
+
+// Rule directions.
+const (
+	// RuleReceive rules change the GOBL document converted from NetSuite.
+	// In them, "." is the GOBL element and "$src" the NetSuite data.
+	RuleReceive RuleDirection = "receive"
+	// RuleSend rules change the NetSuite record prepared from a GOBL
+	// document, such as a vendor bill. In them, "." is the NetSuite record
+	// or line, "$src" the GOBL element, and "$source" the GOBL document.
+	RuleSend RuleDirection = "send"
+)
+
+// sendScopes lists the scopes of send rules in the order they are applied.
+var sendScopes = []Scope{ScopeVendor, ScopeLine, ScopeDocument}
+
 // scopes lists the element scopes in the order they are applied, followed
 // by the document scope.
 var scopes = []Scope{
@@ -146,6 +168,9 @@ type Rule struct {
 	ID string `json:"id"`
 	// Description explains what the rule does.
 	Description string `json:"description,omitempty"`
+	// Direction is whether the rule applies when receiving from NetSuite,
+	// the default, or when sending to it.
+	Direction RuleDirection `json:"direction,omitempty"`
 	// Scope is what the rule applies to, the document by default.
 	Scope Scope `json:"scope,omitempty"`
 	// JQ is the program, e.g. `.ordering.code = $source.transaction.custbody_po`.
@@ -159,6 +184,13 @@ func (r *Rule) scope() Scope {
 		return ScopeDocument
 	}
 	return r.Scope
+}
+
+func (r *Rule) direction() RuleDirection {
+	if r.Direction == "" {
+		return RuleReceive
+	}
+	return r.Direction
 }
 
 // Merge combines mappings in order. Tax codes with the same ID or code, and
@@ -229,8 +261,17 @@ func (m *Mapping) Validate() error {
 			errs = append(errs, fmt.Errorf("rules[%d]: duplicate id %q", i, r.ID))
 		}
 		ids[r.ID] = true
-		if !slices.Contains(scopes, r.scope()) {
-			errs = append(errs, fmt.Errorf("rules[%d]: unknown scope %q", i, r.Scope))
+		switch r.direction() {
+		case RuleReceive:
+			if !slices.Contains(scopes, r.scope()) {
+				errs = append(errs, fmt.Errorf("rules[%d]: unknown scope %q", i, r.Scope))
+			}
+		case RuleSend:
+			if !slices.Contains(sendScopes, r.scope()) {
+				errs = append(errs, fmt.Errorf("rules[%d]: scope %q is not available when sending", i, r.Scope))
+			}
+		default:
+			errs = append(errs, fmt.Errorf("rules[%d]: unknown direction %q", i, r.Direction))
 		}
 		if r.Disabled {
 			continue
@@ -298,7 +339,7 @@ func (m *Mapping) refersTo(field string) bool {
 		return false
 	}
 	for _, r := range m.Rules {
-		if strings.Contains(r.JQ, field) {
+		if r.direction() == RuleReceive && strings.Contains(r.JQ, field) {
 			return true
 		}
 	}
