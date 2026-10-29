@@ -22,22 +22,22 @@ type VendorOptions struct {
 	ExternalID string
 	// Fields are added to the record, such as custom fields.
 	Fields map[string]any
-	// Mapping provides vendor send rules to apply, with $src the party.
+	// Mapping provides vendor export rules to apply, with $src the party.
 	Mapping *Mapping
 }
 
-// NewVendor prepares a vendor from a GOBL party, such as an invoice's
+// ExportVendor exports a vendor from a GOBL party, such as an invoice's
 // supplier: its name, tax ID, first email and telephone, and first address
 // as the default billing address. Payment details are never included, as
 // they need checking before they are used.
-func NewVendor(p *org.Party, o *VendorOptions) (*Outbound, error) {
+func ExportVendor(p *org.Party, o *VendorOptions) (*Record, error) {
 	if p == nil || p.Name == "" {
 		return nil, fmt.Errorf("the party must have a name")
 	}
 	if o == nil || o.Subsidiary == "" {
 		return nil, fmt.Errorf("the subsidiary is required")
 	}
-	out := &Outbound{RecordType: RecordTypeVendor}
+	out := &Record{RecordType: RecordTypeVendor}
 	d := vendorDetailsOf(p)
 	body := map[string]any{
 		"isPerson":    false,
@@ -86,7 +86,7 @@ func NewVendor(p *org.Party, o *VendorOptions) (*Outbound, error) {
 	if len(p.Identities) > 0 {
 		out.notice("identities", "identities other than the tax ID are not recorded")
 	}
-	if err := applySendRules(o.Mapping, &body, p, []*sendElement{{scope: ScopeVendor, target: &body, src: p}}); err != nil {
+	if err := applyExportRules(o.Mapping, &body, p, []*exportElement{{scope: ScopeVendor, target: &body, src: p}}); err != nil {
 		return nil, err
 	}
 	out.Body = body

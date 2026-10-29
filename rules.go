@@ -40,7 +40,7 @@ func (r *Result) applyRules(timeout time.Duration) error {
 	}
 	for _, scope := range scopes {
 		for _, rule := range r.Mapping.Rules {
-			if rule.scope() != scope || rule.direction() != RuleReceive {
+			if rule.scope() != scope || rule.direction() != RuleImport {
 				continue
 			}
 			code, err := compileRule(rule)
@@ -74,18 +74,18 @@ func (r *Result) applyRules(timeout time.Duration) error {
 	return nil
 }
 
-// sendElement is part of a NetSuite record prepared from a GOBL document,
-// with the GOBL element it was prepared from, for send rules.
-type sendElement struct {
+// exportElement is part of a NetSuite record prepared from a GOBL document,
+// with the GOBL element it was exported from, for export rules.
+type exportElement struct {
 	scope  Scope
 	target *map[string]any
 	src    any
 }
 
-// applySendRules runs a mapping's send rules on the record being prepared,
-// scope by scope, with document rules last. The external ID can't be
-// changed, as it's how a record is found again when a job is retried.
-func applySendRules(m *Mapping, body *map[string]any, source any, elements []*sendElement) error {
+// applyExportRules runs a mapping's export rules on the record being
+// exported, scope by scope, with document rules last. The external ID can't
+// be changed, as it's how a record is found again when sending is retried.
+func applyExportRules(m *Mapping, body *map[string]any, source any, elements []*exportElement) error {
 	if m == nil || len(m.Rules) == 0 {
 		return nil
 	}
@@ -94,9 +94,9 @@ func applySendRules(m *Mapping, body *map[string]any, source any, elements []*se
 		return fmt.Errorf("preparing source: %w", err)
 	}
 	externalID := (*body)["externalId"]
-	for _, scope := range sendScopes {
+	for _, scope := range exportScopes {
 		for _, rule := range m.Rules {
-			if rule.Disabled || rule.direction() != RuleSend || rule.scope() != scope {
+			if rule.Disabled || rule.direction() != RuleExport || rule.scope() != scope {
 				continue
 			}
 			code, err := compileRule(rule)

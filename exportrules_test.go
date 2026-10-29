@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSendRules(t *testing.T) {
+func TestExportRules(t *testing.T) {
 	inv := purchase(t, func(doc map[string]any) {
 		doc["ordering"] = map[string]any{"code": "PO-77"}
 	})
@@ -16,12 +16,12 @@ func TestSendRules(t *testing.T) {
 	t.Run("lines then document", func(t *testing.T) {
 		o := purchaseOptions(t)
 		o.Mapping = &netsuite.Mapping{Rules: []*netsuite.Rule{
-			{ID: "fibre-account", Direction: netsuite.RuleSend, Scope: netsuite.ScopeLine, JQ: `if ($src.item.name // "") | test("Fibre") then .account = {id: "131"} else . end`},
-			{ID: "department", Direction: netsuite.RuleSend, Scope: netsuite.ScopeLine, JQ: `.department = {id: "4"}`},
-			{ID: "po", Direction: netsuite.RuleSend, JQ: `.custbody_po = $src.ordering.code | .memo = "Lines: \(.expense.items | length)"`},
+			{ID: "fibre-account", Direction: netsuite.RuleExport, Scope: netsuite.ScopeLine, JQ: `if ($src.item.name // "") | test("Fibre") then .account = {id: "131"} else . end`},
+			{ID: "department", Direction: netsuite.RuleExport, Scope: netsuite.ScopeLine, JQ: `.department = {id: "4"}`},
+			{ID: "po", Direction: netsuite.RuleExport, JQ: `.custbody_po = $src.ordering.code | .memo = "Lines: \(.expense.items | length)"`},
 			{ID: "receive-only", JQ: `.supplier.name = "ignored"`},
 		}}
-		out, err := netsuite.NewPurchase(inv, o)
+		out, err := netsuite.ExportPurchase(inv, o)
 		require.NoError(t, err)
 		lines := expenseLines(t, out)
 		require.Len(t, lines, 4)
@@ -40,25 +40,25 @@ func TestSendRules(t *testing.T) {
 	t.Run("the external ID is kept", func(t *testing.T) {
 		o := purchaseOptions(t)
 		o.Mapping = &netsuite.Mapping{Rules: []*netsuite.Rule{
-			{ID: "eid", Direction: netsuite.RuleSend, JQ: `.externalId = "other"`},
+			{ID: "eid", Direction: netsuite.RuleExport, JQ: `.externalId = "other"`},
 		}}
-		_, err := netsuite.NewPurchase(inv, o)
+		_, err := netsuite.ExportPurchase(inv, o)
 		assert.ErrorContains(t, err, "rules can't change the externalId")
 	})
 
 	t.Run("errors name the rule", func(t *testing.T) {
 		o := purchaseOptions(t)
 		o.Mapping = &netsuite.Mapping{Rules: []*netsuite.Rule{
-			{ID: "bad", Direction: netsuite.RuleSend, Scope: netsuite.ScopeLine, JQ: `"text"`},
+			{ID: "bad", Direction: netsuite.RuleExport, Scope: netsuite.ScopeLine, JQ: `"text"`},
 		}}
-		_, err := netsuite.NewPurchase(inv, o)
+		_, err := netsuite.ExportPurchase(inv, o)
 		assert.ErrorContains(t, err, `rule "bad": line 0: output must be an object`)
 	})
 
 	t.Run("vendors", func(t *testing.T) {
-		out, err := netsuite.NewVendor(orange(), &netsuite.VendorOptions{Subsidiary: "3", Mapping: &netsuite.Mapping{Rules: []*netsuite.Rule{
-			{ID: "category", Direction: netsuite.RuleSend, Scope: netsuite.ScopeVendor, JQ: `.category = {id: "3"} | .emailTransactions = ($src.emails | length > 0)`},
-			{ID: "bill-only", Direction: netsuite.RuleSend, JQ: `.memo = "not a vendor"`},
+		out, err := netsuite.ExportVendor(orange(), &netsuite.VendorOptions{Subsidiary: "3", Mapping: &netsuite.Mapping{Rules: []*netsuite.Rule{
+			{ID: "category", Direction: netsuite.RuleExport, Scope: netsuite.ScopeVendor, JQ: `.category = {id: "3"} | .emailTransactions = ($src.emails | length > 0)`},
+			{ID: "bill-only", Direction: netsuite.RuleExport, JQ: `.memo = "not a vendor"`},
 		}}})
 		require.NoError(t, err)
 		assert.Equal(t, map[string]any{"id": "3"}, out.Body["category"])
@@ -67,25 +67,25 @@ func TestSendRules(t *testing.T) {
 	})
 }
 
-func TestValidateSendRules(t *testing.T) {
+func TestValidateExportRules(t *testing.T) {
 	m := &netsuite.Mapping{Rules: []*netsuite.Rule{
-		{ID: "ok", Direction: netsuite.RuleSend, Scope: netsuite.ScopeVendor, JQ: `.`},
-		{ID: "scope", Direction: netsuite.RuleSend, Scope: netsuite.ScopeCustomer, JQ: `.`},
+		{ID: "ok", Direction: netsuite.RuleExport, Scope: netsuite.ScopeVendor, JQ: `.`},
+		{ID: "scope", Direction: netsuite.RuleExport, Scope: netsuite.ScopeCustomer, JQ: `.`},
 		{ID: "direction", Direction: "sideways", JQ: `.`},
 		{ID: "vendor-on-receive", Scope: netsuite.ScopeVendor, JQ: `.`},
 	}}
 	err := m.Validate()
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), `rules[1]: scope "customer" is not available when sending`)
+	assert.Contains(t, err.Error(), `rules[1]: scope "customer" is not available when exporting`)
 	assert.Contains(t, err.Error(), `rules[2]: unknown direction "sideways"`)
 	assert.Contains(t, err.Error(), `rules[3]: unknown scope "vendor"`)
 	assert.NotContains(t, err.Error(), "rules[0]")
 }
 
-func TestReceiveIgnoresSendRules(t *testing.T) {
+func TestImportIgnoresExportRules(t *testing.T) {
 	b := loadBundle(t, "examples/netsuite/invoice_basic.json")
-	_, err := netsuite.Convert(b, netsuite.WithMapping(&netsuite.Mapping{Rules: []*netsuite.Rule{
-		{ID: "bad", Direction: netsuite.RuleSend, JQ: `"would fail"`},
+	_, err := netsuite.Import(b, netsuite.WithMapping(&netsuite.Mapping{Rules: []*netsuite.Rule{
+		{ID: "bad", Direction: netsuite.RuleExport, JQ: `"would fail"`},
 	}}))
 	require.NoError(t, err)
 }

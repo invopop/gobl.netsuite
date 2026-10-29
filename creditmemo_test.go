@@ -11,7 +11,7 @@ import (
 
 func TestFromCreditMemo(t *testing.T) {
 	t.Run("created from invoice", func(t *testing.T) {
-		res, err := netsuite.FromCreditMemo(loadBundle(t, "examples/netsuite/creditmemo_created_from.json"))
+		res, err := netsuite.ImportCreditMemo(loadBundle(t, "examples/netsuite/creditmemo_created_from.json"))
 		require.NoError(t, err)
 		inv := res.Invoice
 		assert.Equal(t, bill.InvoiceTypeCreditNote, inv.Type)
@@ -24,7 +24,7 @@ func TestFromCreditMemo(t *testing.T) {
 	})
 
 	t.Run("applied to invoice", func(t *testing.T) {
-		res, err := netsuite.FromCreditMemo(loadBundle(t, "examples/netsuite/creditmemo_applied.json"))
+		res, err := netsuite.ImportCreditMemo(loadBundle(t, "examples/netsuite/creditmemo_applied.json"))
 		require.NoError(t, err)
 		require.Len(t, res.Invoice.Preceding, 1)
 		assert.Equal(t, "4", res.Invoice.Preceding[0].Code.String())
@@ -33,7 +33,7 @@ func TestFromCreditMemo(t *testing.T) {
 	t.Run("without related invoices", func(t *testing.T) {
 		b := loadBundle(t, "examples/netsuite/creditmemo_applied.json")
 		b.Related = nil
-		res, err := netsuite.FromCreditMemo(b)
+		res, err := netsuite.ImportCreditMemo(b)
 		require.NoError(t, err)
 		assert.Empty(t, res.Invoice.Preceding)
 		require.Len(t, res.Unmapped, 1)
@@ -41,17 +41,17 @@ func TestFromCreditMemo(t *testing.T) {
 	})
 
 	t.Run("rejects invoices", func(t *testing.T) {
-		_, err := netsuite.FromCreditMemo(basicBundle(t))
+		_, err := netsuite.ImportCreditMemo(basicBundle(t))
 		assert.ErrorContains(t, err, `expected type "custcred", got "custinvc"`)
 	})
 }
 
 func TestConvert(t *testing.T) {
-	res, err := netsuite.Convert(basicBundle(t))
+	res, err := netsuite.Import(basicBundle(t))
 	require.NoError(t, err)
 	assert.Equal(t, bill.InvoiceTypeStandard, res.Invoice.Type)
 
-	res, err = netsuite.Convert(loadBundle(t, "examples/netsuite/creditmemo_applied.json"))
+	res, err = netsuite.Import(loadBundle(t, "examples/netsuite/creditmemo_applied.json"))
 	require.NoError(t, err)
 	assert.Equal(t, bill.InvoiceTypeCreditNote, res.Invoice.Type)
 
@@ -59,6 +59,6 @@ func TestConvert(t *testing.T) {
 	modify(t, &b.Transaction, func(m map[string]any) {
 		m["type"] = map[string]any{"id": "salesord"}
 	})
-	_, err = netsuite.Convert(b)
+	_, err = netsuite.Import(b)
 	assert.EqualError(t, err, `unsupported transaction type "salesord"`)
 }

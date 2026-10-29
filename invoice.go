@@ -68,7 +68,7 @@ func (r *Result) notice(path, format string, args ...any) {
 	r.Unmapped = append(r.Unmapped, &Notice{Path: path, Message: fmt.Sprintf(format, args...)})
 }
 
-// FromInvoice converts a bundle containing a NetSuite invoice into a GOBL
+// ImportInvoice imports a bundle containing a NetSuite invoice into a GOBL
 // invoice.
 //
 // The conversion supports accounts using legacy tax, with a tax code per
@@ -76,35 +76,35 @@ func (r *Result) notice(path, format string, args ...any) {
 // The mapping from the presets and options is applied, but the resulting
 // invoice is not calculated: calculate and validate it, then call
 // CheckTotals to compare with the amounts calculated by NetSuite.
-func FromInvoice(b *Bundle, opts ...Option) (*Result, error) {
-	return convert(b, transactionTypeInvoice, opts)
+func ImportInvoice(b *Bundle, opts ...Option) (*Result, error) {
+	return importTransaction(b, transactionTypeInvoice, opts)
 }
 
-// FromCreditMemo converts a bundle containing a NetSuite credit memo into a
+// ImportCreditMemo imports a bundle containing a NetSuite credit memo into a
 // GOBL credit note, referring to the invoices it was created from or applied
-// to when they are included in the bundle. See FromInvoice for details.
-func FromCreditMemo(b *Bundle, opts ...Option) (*Result, error) {
-	return convert(b, transactionTypeCreditMemo, opts)
+// to when they are included in the bundle. See ImportInvoice for details.
+func ImportCreditMemo(b *Bundle, opts ...Option) (*Result, error) {
+	return importTransaction(b, transactionTypeCreditMemo, opts)
 }
 
-// Convert converts a bundle into a GOBL invoice or credit note according to
+// Import imports a bundle into a GOBL invoice or credit note according to
 // the type of its transaction.
-func Convert(b *Bundle, opts ...Option) (*Result, error) {
+func Import(b *Bundle, opts ...Option) (*Result, error) {
 	recs, err := b.parse()
 	if err != nil {
 		return nil, err
 	}
 	switch t := recs.transactionType(); t {
 	case transactionTypeInvoice:
-		return FromInvoice(b, opts...)
+		return ImportInvoice(b, opts...)
 	case transactionTypeCreditMemo:
-		return FromCreditMemo(b, opts...)
+		return ImportCreditMemo(b, opts...)
 	default:
 		return nil, fmt.Errorf("unsupported transaction type %q", t)
 	}
 }
 
-func convert(b *Bundle, txType string, opts []Option) (*Result, error) {
+func importTransaction(b *Bundle, txType string, opts []Option) (*Result, error) {
 	recs, err := b.parse()
 	if err != nil {
 		return nil, err

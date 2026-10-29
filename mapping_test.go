@@ -101,14 +101,14 @@ func TestPresets(t *testing.T) {
 
 func TestTaxCodeMapping(t *testing.T) {
 	t.Run("default preset", func(t *testing.T) {
-		res, err := netsuite.FromInvoice(basicBundle(t))
+		res, err := netsuite.ImportInvoice(basicBundle(t))
 		require.NoError(t, err)
 		require.NotNil(t, res.Mapping)
 		assert.NotEmpty(t, res.Mapping.TaxCodes)
 	})
 
 	t.Run("id takes priority over code", func(t *testing.T) {
-		res, err := netsuite.FromInvoice(basicBundle(t), netsuite.WithMapping(mapping(t, `{
+		res, err := netsuite.ImportInvoice(basicBundle(t), netsuite.WithMapping(mapping(t, `{
 			"tax_codes": [{"id": "6", "combo": {"cat": "VAT", "key": "standard", "ext": {"es-verifactu-regime": "03"}}}]
 		}`)))
 		require.NoError(t, err)
@@ -118,7 +118,7 @@ func TestTaxCodeMapping(t *testing.T) {
 	})
 
 	t.Run("mapped percent", func(t *testing.T) {
-		res, err := netsuite.FromInvoice(basicBundle(t), netsuite.WithMapping(mapping(t, `{
+		res, err := netsuite.ImportInvoice(basicBundle(t), netsuite.WithMapping(mapping(t, `{
 			"tax_codes": [{"id": "6", "combo": {"cat": "VAT", "percent": "10%"}}]
 		}`)))
 		require.NoError(t, err)
@@ -126,7 +126,7 @@ func TestTaxCodeMapping(t *testing.T) {
 	})
 
 	t.Run("category from tax type", func(t *testing.T) {
-		res, err := netsuite.FromInvoice(basicBundle(t), netsuite.WithMapping(mapping(t, `{
+		res, err := netsuite.ImportInvoice(basicBundle(t), netsuite.WithMapping(mapping(t, `{
 			"tax_codes": [{"code": "S-ES", "combo": {"key": "standard"}}]
 		}`)))
 		require.NoError(t, err)
@@ -135,7 +135,7 @@ func TestTaxCodeMapping(t *testing.T) {
 
 	t.Run("codes missing from mapping", func(t *testing.T) {
 		b := loadBundle(t, "examples/netsuite/invoice_mixed_rates.json")
-		res, err := netsuite.FromInvoice(b, netsuite.WithPresets(), netsuite.WithMapping(mapping(t, `{
+		res, err := netsuite.ImportInvoice(b, netsuite.WithPresets(), netsuite.WithMapping(mapping(t, `{
 			"tax_codes": [{"code": "S-ES", "combo": {"cat": "VAT", "key": "standard"}}]
 		}`)))
 		require.NoError(t, err)
@@ -148,14 +148,14 @@ func TestTaxCodeMapping(t *testing.T) {
 		// Tax codes are only converted by the mappings provided, so even an
 		// exempt code is taxed at the line's rate, with no notices.
 		b := loadBundle(t, "examples/netsuite/invoice_mixed_rates.json")
-		res, err := netsuite.FromInvoice(b, netsuite.WithPresets())
+		res, err := netsuite.ImportInvoice(b, netsuite.WithPresets())
 		require.NoError(t, err)
 		assert.Empty(t, res.Unmapped)
 		assert.Equal(t, tax.KeyZero, res.Invoice.Lines[4].Taxes[0].Key)
 	})
 
 	t.Run("invalid mapping", func(t *testing.T) {
-		_, err := netsuite.FromInvoice(basicBundle(t), netsuite.WithMapping(mapping(t, `{
+		_, err := netsuite.ImportInvoice(basicBundle(t), netsuite.WithMapping(mapping(t, `{
 			"rules": [{"id": "x", "jq": ".foo ="}]
 		}`)))
 		assert.ErrorContains(t, err, "mapping: rules[0]: parsing jq")
@@ -174,7 +174,7 @@ func TestTaxCodeMatching(t *testing.T) {
 			}
 		})
 		b.TaxCodes["6"] = tc
-		res, err := netsuite.FromInvoice(b, opts...)
+		res, err := netsuite.ImportInvoice(b, opts...)
 		require.NoError(t, err)
 		return res.Invoice.Lines[0].Taxes[0]
 	}
@@ -239,7 +239,7 @@ func undefinedBundle(t *testing.T) *netsuite.Bundle {
 
 func TestTaxCodeReject(t *testing.T) {
 	t.Run("undefined tax codes", func(t *testing.T) {
-		_, err := netsuite.FromInvoice(undefinedBundle(t))
+		_, err := netsuite.ImportInvoice(undefinedBundle(t))
 		assert.EqualError(t, err, "transaction.item.items[0]: tax code 5 (UNDEF-ES) rejected: "+
 			"NetSuite could not determine the tax code, set the correct tax code on the line")
 	})
@@ -247,12 +247,12 @@ func TestTaxCodeReject(t *testing.T) {
 	t.Run("in a header discount", func(t *testing.T) {
 		b := undefinedBundle(t)
 		modify(t, &b.Transaction, func(m map[string]any) { m["discountTotal"] = -100 })
-		_, err := netsuite.FromInvoice(b)
+		_, err := netsuite.ImportInvoice(b)
 		assert.ErrorContains(t, err, "tax code 5 (UNDEF-ES) rejected")
 	})
 
 	t.Run("exact code overrides the pattern", func(t *testing.T) {
-		res, err := netsuite.FromInvoice(undefinedBundle(t), netsuite.WithMapping(mapping(t, `{
+		res, err := netsuite.ImportInvoice(undefinedBundle(t), netsuite.WithMapping(mapping(t, `{
 			"tax_codes": [{"code": "UNDEF-ES", "combo": {"key": "outside-scope"}}]
 		}`)))
 		require.NoError(t, err)
@@ -260,7 +260,7 @@ func TestTaxCodeReject(t *testing.T) {
 	})
 
 	t.Run("disabled", func(t *testing.T) {
-		res, err := netsuite.FromInvoice(undefinedBundle(t), netsuite.WithMapping(mapping(t, `{
+		res, err := netsuite.ImportInvoice(undefinedBundle(t), netsuite.WithMapping(mapping(t, `{
 			"tax_codes": [{"code": "UNDEF-*", "disabled": true}]
 		}`)))
 		require.NoError(t, err)
@@ -268,7 +268,7 @@ func TestTaxCodeReject(t *testing.T) {
 	})
 
 	t.Run("by ID", func(t *testing.T) {
-		_, err := netsuite.FromInvoice(basicBundle(t), netsuite.WithMapping(mapping(t, `{
+		_, err := netsuite.ImportInvoice(basicBundle(t), netsuite.WithMapping(mapping(t, `{
 			"tax_codes": [{"id": "6", "reject": "not for sales"}]
 		}`)))
 		assert.ErrorContains(t, err, "tax code 6 (S-ES) rejected: not for sales")
@@ -312,7 +312,7 @@ func TestRules(t *testing.T) {
 	t.Run("document", func(t *testing.T) {
 		b := basicBundle(t)
 		modify(t, &b.Transaction, func(m map[string]any) { m["custbody_po"] = "PO-9" })
-		res, err := netsuite.FromInvoice(b, withRules(t, `[
+		res, err := netsuite.ImportInvoice(b, withRules(t, `[
 			{"id": "po", "jq": ".ordering.code = $source.transaction.custbody_po"}
 		]`))
 		require.NoError(t, err)
@@ -321,7 +321,7 @@ func TestRules(t *testing.T) {
 	})
 
 	t.Run("document rules may remove elements", func(t *testing.T) {
-		res, err := netsuite.FromInvoice(loadBundle(t, "examples/netsuite/invoice_mixed_rates.json"), withRules(t, `[
+		res, err := netsuite.ImportInvoice(loadBundle(t, "examples/netsuite/invoice_mixed_rates.json"), withRules(t, `[
 			{"id": "drop", "jq": ".lines |= .[:2]"}
 		]`))
 		require.NoError(t, err)
@@ -333,7 +333,7 @@ func TestRules(t *testing.T) {
 		modify(t, &b.Transaction, func(m map[string]any) {
 			lines(m)[2].(map[string]any)["custcol_cn_code"] = "8471"
 		})
-		res, err := netsuite.FromInvoice(b, withRules(t, `[
+		res, err := netsuite.ImportInvoice(b, withRules(t, `[
 			{"id": "ref", "scope": "line", "jq": ".item.ref = $src.item.id"},
 			{"id": "cn", "scope": "line", "jq": "if $src.custcol_cn_code then .item.identities += [{type: \"CN\", code: $src.custcol_cn_code}] end"}
 		]`))
@@ -350,7 +350,7 @@ func TestRules(t *testing.T) {
 	})
 
 	t.Run("line discount", func(t *testing.T) {
-		res, err := netsuite.FromInvoice(loadBundle(t, "examples/netsuite/invoice_line_discount.json"), withRules(t, `[
+		res, err := netsuite.ImportInvoice(loadBundle(t, "examples/netsuite/invoice_line_discount.json"), withRules(t, `[
 			{"id": "d", "scope": "line-discount", "jq": ".code = $src.itemType.id"}
 		]`))
 		require.NoError(t, err)
@@ -358,7 +358,7 @@ func TestRules(t *testing.T) {
 	})
 
 	t.Run("discount", func(t *testing.T) {
-		res, err := netsuite.FromInvoice(loadBundle(t, "examples/netsuite/invoice_subtotal_discount.json"), withRules(t, `[
+		res, err := netsuite.ImportInvoice(loadBundle(t, "examples/netsuite/invoice_subtotal_discount.json"), withRules(t, `[
 			{"id": "d", "scope": "discount", "jq": ".code = $src.itemType.id"}
 		]`))
 		require.NoError(t, err)
@@ -366,7 +366,7 @@ func TestRules(t *testing.T) {
 	})
 
 	t.Run("header discount", func(t *testing.T) {
-		res, err := netsuite.FromInvoice(loadBundle(t, "examples/netsuite/invoice_header_discount_rates.json"), withRules(t, `[
+		res, err := netsuite.ImportInvoice(loadBundle(t, "examples/netsuite/invoice_header_discount_rates.json"), withRules(t, `[
 			{"id": "d", "scope": "discount", "jq": ".reason = \"Header \" + $src.tranId"}
 		]`))
 		require.NoError(t, err)
@@ -377,7 +377,7 @@ func TestRules(t *testing.T) {
 	})
 
 	t.Run("parties", func(t *testing.T) {
-		res, err := netsuite.FromInvoice(basicBundle(t), withRules(t, `[
+		res, err := netsuite.ImportInvoice(basicBundle(t), withRules(t, `[
 			{"id": "c", "scope": "customer", "jq": ".alias = $src.entityId"},
 			{"id": "s", "scope": "supplier", "jq": ".alias = ($src.name + \" (\" + $scope + \")\")"}
 		]`))
@@ -387,7 +387,7 @@ func TestRules(t *testing.T) {
 	})
 
 	t.Run("preceding", func(t *testing.T) {
-		res, err := netsuite.FromCreditMemo(loadBundle(t, "examples/netsuite/creditmemo_applied.json"), withRules(t, `[
+		res, err := netsuite.ImportCreditMemo(loadBundle(t, "examples/netsuite/creditmemo_applied.json"), withRules(t, `[
 			{"id": "p", "scope": "preceding", "jq": ".reason = \"Credits invoice \" + $src.tranId"}
 		]`))
 		require.NoError(t, err)
@@ -395,7 +395,7 @@ func TestRules(t *testing.T) {
 	})
 
 	t.Run("no access to the environment", func(t *testing.T) {
-		res, err := netsuite.FromInvoice(basicBundle(t), withRules(t, `[
+		res, err := netsuite.ImportInvoice(basicBundle(t), withRules(t, `[
 			{"id": "env", "jq": ".ordering.code = ($ENV | length | tostring)"}
 		]`))
 		require.NoError(t, err)
@@ -415,14 +415,14 @@ func TestRuleErrors(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := netsuite.FromInvoice(basicBundle(t), withRules(t, tt.rules))
+			_, err := netsuite.ImportInvoice(basicBundle(t), withRules(t, tt.rules))
 			assert.ErrorContains(t, err, tt.err)
 		})
 	}
 
 	t.Run("timeout", func(t *testing.T) {
 		start := time.Now()
-		_, err := netsuite.FromInvoice(basicBundle(t),
+		_, err := netsuite.ImportInvoice(basicBundle(t),
 			withRules(t, `[{"id": "x", "jq": "last(range(1e15)) as $x | ."}]`),
 			netsuite.WithRuleTimeout(50*time.Millisecond))
 		assert.ErrorContains(t, err, "context deadline exceeded")

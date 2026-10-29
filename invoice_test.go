@@ -53,7 +53,7 @@ func calculate(t *testing.T, res *netsuite.Result) {
 
 func TestFromInvoice(t *testing.T) {
 	t.Run("basic", func(t *testing.T) {
-		res, err := netsuite.FromInvoice(basicBundle(t))
+		res, err := netsuite.ImportInvoice(basicBundle(t))
 		require.NoError(t, err)
 		inv := res.Invoice
 		assert.Equal(t, "ES", inv.GetRegime().String())
@@ -73,14 +73,14 @@ func TestFromInvoice(t *testing.T) {
 	t.Run("requires a subsidiary", func(t *testing.T) {
 		b := basicBundle(t)
 		b.Subsidiary = nil
-		_, err := netsuite.FromInvoice(b)
+		_, err := netsuite.ImportInvoice(b)
 		assert.ErrorContains(t, err, "subsidiary is required")
 	})
 
 	t.Run("requires tax codes in the bundle", func(t *testing.T) {
 		b := basicBundle(t)
 		b.TaxCodes = nil
-		_, err := netsuite.FromInvoice(b)
+		_, err := netsuite.ImportInvoice(b)
 		assert.ErrorContains(t, err, "tax code 6 not in bundle")
 	})
 
@@ -91,7 +91,7 @@ func TestFromInvoice(t *testing.T) {
 			m["exchangeRate"] = 0.9123
 		})
 		b.Currencies["2"] = json.RawMessage(`{"id":"2","name":"US Dollar","symbol":"USD"}`)
-		res, err := netsuite.FromInvoice(b)
+		res, err := netsuite.ImportInvoice(b)
 		require.NoError(t, err)
 		assert.Equal(t, currency.USD, res.Invoice.Currency)
 		require.Len(t, res.Invoice.ExchangeRates, 1)
@@ -108,7 +108,7 @@ func TestFromInvoice(t *testing.T) {
 			m["firstName"] = "Ana"
 			m["lastName"] = "García"
 		})
-		res, err := netsuite.FromInvoice(b)
+		res, err := netsuite.ImportInvoice(b)
 		require.NoError(t, err)
 		assert.Equal(t, "Ana García", res.Invoice.Customer.Name)
 	})
@@ -117,7 +117,7 @@ func TestFromInvoice(t *testing.T) {
 		b := basicBundle(t)
 		modify(t, &b.Transaction, func(m map[string]any) { delete(m, "vatRegNum") })
 		modify(t, &b.Customer, func(m map[string]any) { m["vatRegNumber"] = "ESB12345674" })
-		res, err := netsuite.FromInvoice(b)
+		res, err := netsuite.ImportInvoice(b)
 		require.NoError(t, err)
 		calculate(t, res)
 		assert.Equal(t, "B12345674", res.Invoice.Customer.TaxID.Code.String())
@@ -130,7 +130,7 @@ func TestFromInvoice(t *testing.T) {
 			delete(l, "rate")
 			delete(l, "quantity")
 		})
-		res, err := netsuite.FromInvoice(b)
+		res, err := netsuite.ImportInvoice(b)
 		require.NoError(t, err)
 		calculate(t, res)
 		assert.Equal(t, "1", res.Invoice.Lines[0].Quantity.String())
@@ -141,7 +141,7 @@ func TestFromInvoice(t *testing.T) {
 	t.Run("reference number", func(t *testing.T) {
 		b := basicBundle(t)
 		modify(t, &b.Transaction, func(m map[string]any) { m["otherRefNum"] = "PO-1234" })
-		res, err := netsuite.FromInvoice(b)
+		res, err := netsuite.ImportInvoice(b)
 		require.NoError(t, err)
 		assert.Equal(t, "PO-1234", res.Invoice.Ordering.Code.String())
 	})
@@ -168,7 +168,7 @@ func TestFromInvoiceTaxKeys(t *testing.T) {
 				m["rate"] = 0
 			})
 			b.TaxCodes["6"] = tc
-			res, err := netsuite.FromInvoice(b)
+			res, err := netsuite.ImportInvoice(b)
 			require.NoError(t, err)
 			combo := res.Invoice.Lines[0].Taxes[0]
 			assert.Equal(t, tt.key, combo.Key.String())
@@ -181,7 +181,7 @@ func TestFromInvoiceTaxKeys(t *testing.T) {
 		modify(t, &b.Transaction, func(m map[string]any) {
 			lines(m)[0].(map[string]any)["taxRate1"] = 0
 		})
-		res, err := netsuite.FromInvoice(b)
+		res, err := netsuite.ImportInvoice(b)
 		require.NoError(t, err)
 		assert.Equal(t, tax.KeyZero, res.Invoice.Lines[0].Taxes[0].Key)
 	})
@@ -191,7 +191,7 @@ func TestFromInvoiceTaxKeys(t *testing.T) {
 		modify(t, &b.Transaction, func(m map[string]any) {
 			lines(m)[0].(map[string]any)["taxRate1"] = 10
 		})
-		res, err := netsuite.FromInvoice(b)
+		res, err := netsuite.ImportInvoice(b)
 		require.NoError(t, err)
 		assert.Equal(t, "10%", res.Invoice.Lines[0].Taxes[0].Percent.String())
 	})
@@ -201,7 +201,7 @@ func TestFromInvoiceTaxKeys(t *testing.T) {
 		modify(t, &b.Transaction, func(m map[string]any) {
 			delete(lines(m)[0].(map[string]any), "taxCode")
 		})
-		res, err := netsuite.FromInvoice(b)
+		res, err := netsuite.ImportInvoice(b)
 		require.NoError(t, err)
 		assert.Empty(t, res.Invoice.Lines[0].Taxes)
 		require.Len(t, res.Unmapped, 1)
@@ -227,7 +227,7 @@ func TestFromInvoiceLineTypes(t *testing.T) {
 		m["item"].(map[string]any)["items"] = []any{base, sub, desc, markup, disc}
 	})
 
-	res, err := netsuite.FromInvoice(b)
+	res, err := netsuite.ImportInvoice(b)
 	require.NoError(t, err)
 	assert.Len(t, res.Invoice.Lines, 1)
 	assert.Empty(t, res.Invoice.Discounts)
@@ -249,7 +249,7 @@ func TestFromInvoiceDiscounts(t *testing.T) {
 			disc["taxCode"] = map[string]any{"id": "7"}
 			disc["taxRate1"] = 10
 		})
-		res, err := netsuite.FromInvoice(b)
+		res, err := netsuite.ImportInvoice(b)
 		require.NoError(t, err)
 		assert.Empty(t, res.Invoice.Lines[0].Discounts)
 		require.Len(t, res.Invoice.Discounts, 1)
@@ -264,7 +264,7 @@ func TestFromInvoiceDiscounts(t *testing.T) {
 			m["discountItem"] = map[string]any{"id": "17", "refName": "Discount"}
 			m["discountTotal"] = -100
 		})
-		res, err := netsuite.FromInvoice(b)
+		res, err := netsuite.ImportInvoice(b)
 		require.NoError(t, err)
 		// One discount per tax code used by the lines, adding up exactly.
 		require.Len(t, res.Invoice.Discounts, 5)
@@ -290,7 +290,7 @@ func TestFromInvoiceUnmapped(t *testing.T) {
 		lines(m)[0].(map[string]any)["custcol_cn_code"] = "8471"
 	})
 
-	res, err := netsuite.FromInvoice(b)
+	res, err := netsuite.ImportInvoice(b)
 	require.NoError(t, err)
 	paths := make([]string, len(res.Unmapped))
 	for i, n := range res.Unmapped {
@@ -305,7 +305,7 @@ func TestFromInvoiceUnmapped(t *testing.T) {
 
 func TestCheckTotals(t *testing.T) {
 	t.Run("header discount rounding", func(t *testing.T) {
-		res, err := netsuite.FromInvoice(loadBundle(t, "examples/netsuite/invoice_header_discount_mixed.json"))
+		res, err := netsuite.ImportInvoice(loadBundle(t, "examples/netsuite/invoice_header_discount_mixed.json"))
 		require.NoError(t, err)
 		calculate(t, res)
 		require.NoError(t, res.CheckTotals())
@@ -321,14 +321,14 @@ func TestCheckTotals(t *testing.T) {
 			m["taxTotal"] = 197.60
 			m["total"] = 1673.47
 		})
-		res, err := netsuite.FromInvoice(b)
+		res, err := netsuite.ImportInvoice(b)
 		require.NoError(t, err)
 		calculate(t, res)
 		assert.ErrorContains(t, res.CheckTotals(), "taxTotal: netsuite 197.60, gobl 197.54")
 	})
 
 	t.Run("not calculated", func(t *testing.T) {
-		res, err := netsuite.FromInvoice(basicBundle(t))
+		res, err := netsuite.ImportInvoice(basicBundle(t))
 		require.NoError(t, err)
 		assert.ErrorContains(t, res.CheckTotals(), "not been calculated")
 	})
@@ -339,7 +339,7 @@ func TestCheckTotals(t *testing.T) {
 			m["taxTotal"] = 600
 			m["total"] = 3600
 		})
-		res, err := netsuite.FromInvoice(b)
+		res, err := netsuite.ImportInvoice(b)
 		require.NoError(t, err)
 		calculate(t, res)
 		assert.EqualError(t, res.CheckTotals(),

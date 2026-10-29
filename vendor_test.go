@@ -35,7 +35,7 @@ const orangeVendor = `{
 }`
 
 func TestNewVendor(t *testing.T) {
-	out, err := netsuite.NewVendor(orange(), &netsuite.VendorOptions{
+	out, err := netsuite.ExportVendor(orange(), &netsuite.VendorOptions{
 		Subsidiary: "3", Currency: "1", ExternalID: "invopop-ESA82009812",
 		Fields: map[string]any{"custentity_invopop_review": map[string]string{"id": "1"}},
 	})
@@ -55,7 +55,7 @@ func TestNewVendor(t *testing.T) {
 		"addressee":"Orange Espagne, S.A.","addr1":"Paseo del Club Deportivo 1","addr2":"Parque Empresarial La Finca, Edificio 8",
 		"city":"Pozuelo de Alarcón","state":"Madrid","zip":"28223","country":{"id":"ES"}}}]}`, string(data))
 
-	_, err = netsuite.NewVendor(&org.Party{}, &netsuite.VendorOptions{Subsidiary: "3"})
+	_, err = netsuite.ExportVendor(&org.Party{}, &netsuite.VendorOptions{Subsidiary: "3"})
 	assert.ErrorContains(t, err, "must have a name")
 }
 

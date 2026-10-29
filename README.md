@@ -1,6 +1,8 @@
 # GOBL <-> NetSuite Convertor
 
-Convert NetSuite records to GOBL documents, including a minimal client for the NetSuite REST web services used to fetch them.
+Convert between NetSuite records and GOBL documents, including a minimal client for the NetSuite REST web services used to fetch and create them.
+
+Following GOBL's [naming of conversions](https://github.com/invopop/gobl/tree/main/convert#naming-directions), **import** maps NetSuite records into GOBL, and **export** maps GOBL documents into NetSuite records. Both are conversions only: fetching records from NetSuite and creating them there are done separately, with the client.
 
 Copyright [Invopop Ltd.](https://invopop.com) 2026. Released publicly under the [Apache License Version 2.0](LICENSE). For commercial licenses please contact the [dev team at invopop](mailto:dev@invopop.com). In order to accept contributions to this library we will require transferring copyrights to Invopop Ltd.
 
@@ -19,7 +21,7 @@ Not converted yet, reported as unmapped and so causing the totals check to fail:
 
 **Header discount rounding:** with a header discount across several tax rates, NetSuite rounds the tax of the lines and of the discount separately, so its tax total can differ by up to a cent per rate from the tax of the net base calculated by GOBL. `CheckTotals` accepts these differences, reporting them in `Result.Warnings`.
 
-**Received invoices:** GOBL invoices received from suppliers can be prepared as NetSuite **vendor bills**, or **vendor credits** for credit notes, with `NewPurchase`. See [Purchases](#purchases).
+**Received invoices:** GOBL invoices received from suppliers can be exported as NetSuite **vendor bills**, or **vendor credits** for credit notes, with `ExportPurchase`. See [Purchases](#purchases).
 
 ## Packages
 
@@ -46,7 +48,7 @@ if err != nil {
 	return err
 }
 
-res, err := netsuite.Convert(b) // or FromInvoice, FromCreditMemo
+res, err := netsuite.Import(b) // or ImportInvoice, ImportCreditMemo
 if err != nil {
 	return err
 }
@@ -81,7 +83,7 @@ The `Result` also provides:
 A `Mapping` customises the conversion with a table of tax codes and a list of rules. Presets provide mappings for regions, embedded in the library under `mappings/`, and an account can extend or override them with its own:
 
 ```go
-res, err := netsuite.Convert(b,
+res, err := netsuite.Import(b,
 	netsuite.WithMapping(accountMapping), // merged after the presets
 )
 ```
@@ -113,7 +115,7 @@ Presets use `match`, as NetSuite identifies tax codes by their properties rather
 
 Tax code properties are set consistently in the countries supported by NetSuite's International Tax Reports SuiteApp, which creates the tax codes when a subsidiary is added. Of those, GOBL has a tax regime for: Austria, Belgium, Colombia, Denmark, Finland, France, Germany, Ireland, Italy, Netherlands, New Zealand, Norway, Peru, Poland, Portugal, Singapore, Slovakia, Spain, Sweden, Switzerland and the United Kingdom. Country presets should only be needed for requirements beyond these properties, such as surcharges.
 
-**Rules** are [jq](https://jqlang.org) programs, run with [gojq](https://github.com/itchyny/gojq), that replace part of the converted document with their single output. The `scope` determines what the rule applies to, with `.` the GOBL element and `$src` the NetSuite data it was converted from:
+**Rules** are [jq](https://jqlang.org) programs, run with [gojq](https://github.com/itchyny/gojq), that replace part of the imported document with their single output. The `scope` determines what the rule applies to, with `.` the GOBL element and `$src` the NetSuite data it was converted from:
 
 | Scope | `.` | `$src` |
 | --- | --- | --- |
@@ -127,7 +129,7 @@ Tax code properties are set consistently in the countries supported by NetSuite'
 
 `$source` is always the whole bundle, and `$scope` the rule's scope. Rules run by scope in the order above, and in mapping order within a scope, so document rules see the result of all the others and are the only ones that should add or remove elements. Custom fields referred to by a rule are not reported as unmapped.
 
-**Send rules** have `"direction": "send"`, and change the NetSuite records prepared from GOBL documents, the reverse of the above: `.` is the NetSuite record or line, `$src` the GOBL element, and `$source` the GOBL document. They run after the record is prepared, by scope in this order:
+**Export rules** have `"direction": "export"`, and change the NetSuite records exported from GOBL documents, the reverse of the above: `.` is the NetSuite record or line, `$src` the GOBL element, and `$source` the GOBL document. They run after the record is exported, by scope in this order:
 
 | Scope | `.` | `$src` |
 | --- | --- | --- |
@@ -136,20 +138,20 @@ Tax code properties are set consistently in the countries supported by NetSuite'
 | `document` (default) | the vendor bill or credit | the invoice |
 
 ```json
-{ "id": "fibre-account", "direction": "send", "scope": "line", "jq": "if ($src.item.name // \"\") | test(\"(?i)fibre\") then .account = {id: \"131\"} else . end" }
+{ "id": "fibre-account", "direction": "export", "scope": "line", "jq": "if ($src.item.name // \"\") | test(\"(?i)fibre\") then .account = {id: \"131\"} else . end" }
 ```
 
-Send rules can't change a record's `externalId`, as it's how the record is found again when sending is retried. Conversions from NetSuite ignore send rules, and sending ignores receive rules.
+Export rules can't change a record's `externalId`, as it's how the record is found again when creating it is retried. Imports ignore export rules, and exports ignore import rules, which have `"direction": "import"`, the default.
 
 Rules cannot access the environment or files, and each run on an element is limited to one second by default (`WithRuleTimeout`). As jq numbers are floating point, rules should move or look up amounts, and leave calculations to GOBL.
 
 ### Purchases
 
-`NewPurchase` prepares a vendor bill or vendor credit from a calculated GOBL invoice received from a supplier. The caller finds the NetSuite records it refers to, the subsidiary, vendor, currency and expense account, and passes them in `PurchaseOptions`:
+`ExportPurchase` exports a vendor bill or vendor credit from a calculated GOBL invoice received from a supplier. The caller finds the NetSuite records it refers to, the subsidiary, vendor, currency and expense account, and passes them in `PurchaseOptions`:
 
 ```go
 idx, err := netsuite.NewTaxCodeIndex(mapping, taxCodeRecords) // the account's salestaxitem records
-out, err := netsuite.NewPurchase(inv, &netsuite.PurchaseOptions{
+out, err := netsuite.ExportPurchase(inv, &netsuite.PurchaseOptions{
 	Subsidiary: "3", Country: "ES", Vendor: "8", Currency: "1",
 	Account:    "133", // the expense account for every line
 	ExternalID: siloEntryID,
@@ -166,7 +168,7 @@ id, err := nc.CreateRecord(ctx, out.RecordType, out.Body)
 
 `CheckRecordTotals` compares the record NetSuite created with the invoice, allowing a subunit per tax rate.
 
-`NewVendor` prepares a vendor from a GOBL party, such as an invoice's supplier: its name, tax ID, first email and telephone, and first address as the default billing address. Payment details are never included. `CompareVendor` lists the party's details that differ from an existing vendor's, ignoring case, spacing and details the party doesn't have, so they can be reviewed rather than overwritten.
+`ExportVendor` exports a vendor from a GOBL party, such as an invoice's supplier: its name, tax ID, first email and telephone, and first address as the default billing address. Payment details are never included. `CompareVendor` lists the party's details that differ from an existing vendor's, ignoring case, spacing and details the party doesn't have, so they can be reviewed rather than overwritten.
 
 ### Examples
 
@@ -259,9 +261,9 @@ Copy `.env.example` to `.env` and fill in the credentials, then:
 # List recently modified invoices
 go run ./cmd/gobl.netsuite probe invoices
 
-# Fetch an invoice or credit memo bundle, or convert it directly into GOBL
+# Fetch an invoice or credit memo bundle, or import it directly into GOBL
 go run ./cmd/gobl.netsuite probe invoice 1234 -o probe/invoice_1234.json
-go run ./cmd/gobl.netsuite probe creditmemo 1235 --convert
+go run ./cmd/gobl.netsuite probe creditmemo 1235 --import
 
 # Create a new example fixture
 go run ./cmd/gobl.netsuite probe invoice 1234 --strip-links -o examples/netsuite/invoice_new.json
@@ -271,9 +273,9 @@ go run ./cmd/gobl.netsuite probe create invoice invoice.json
 go run ./cmd/gobl.netsuite probe transform invoice 1234 creditmemo credit.json
 go run ./cmd/gobl.netsuite probe update creditmemo 1235 --replace item lines.json
 
-# Convert a bundle file into a GOBL envelope, optionally with mappings
-go run ./cmd/gobl.netsuite convert examples/netsuite/invoice_basic.json
-go run ./cmd/gobl.netsuite convert examples/netsuite/invoice_basic.json -m account.json --no-presets
+# Import a bundle file into a GOBL envelope, optionally with mappings
+go run ./cmd/gobl.netsuite import examples/netsuite/invoice_basic.json
+go run ./cmd/gobl.netsuite import examples/netsuite/invoice_basic.json -m account.json --no-presets
 
 # List the mapping presets, or show one
 go run ./cmd/gobl.netsuite presets

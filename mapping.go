@@ -127,27 +127,27 @@ const (
 	ScopePreceding Scope = "preceding"
 )
 
-// ScopeVendor rules apply to vendors created from GOBL parties, in the send
-// direction.
+// ScopeVendor rules apply to vendors exported from GOBL parties.
 const ScopeVendor Scope = "vendor"
 
-// RuleDirection is whether a rule applies when converting NetSuite records
-// into GOBL, or GOBL documents into NetSuite records.
+// RuleDirection is whether a rule applies when importing NetSuite records
+// into GOBL, or exporting GOBL documents into NetSuite records.
 type RuleDirection string
 
 // Rule directions.
 const (
-	// RuleReceive rules change the GOBL document converted from NetSuite.
+	// RuleImport rules change the GOBL document imported from NetSuite.
 	// In them, "." is the GOBL element and "$src" the NetSuite data.
-	RuleReceive RuleDirection = "receive"
-	// RuleSend rules change the NetSuite record prepared from a GOBL
+	RuleImport RuleDirection = "import"
+	// RuleExport rules change the NetSuite record exported from a GOBL
 	// document, such as a vendor bill. In them, "." is the NetSuite record
 	// or line, "$src" the GOBL element, and "$source" the GOBL document.
-	RuleSend RuleDirection = "send"
+	RuleExport RuleDirection = "export"
 )
 
-// sendScopes lists the scopes of send rules in the order they are applied.
-var sendScopes = []Scope{ScopeVendor, ScopeLine, ScopeDocument}
+// exportScopes lists the scopes of export rules in the order they are
+// applied.
+var exportScopes = []Scope{ScopeVendor, ScopeLine, ScopeDocument}
 
 // scopes lists the element scopes in the order they are applied, followed
 // by the document scope.
@@ -168,8 +168,8 @@ type Rule struct {
 	ID string `json:"id"`
 	// Description explains what the rule does.
 	Description string `json:"description,omitempty"`
-	// Direction is whether the rule applies when receiving from NetSuite,
-	// the default, or when sending to it.
+	// Direction is whether the rule applies when importing from NetSuite,
+	// the default, or when exporting to it.
 	Direction RuleDirection `json:"direction,omitempty"`
 	// Scope is what the rule applies to, the document by default.
 	Scope Scope `json:"scope,omitempty"`
@@ -188,7 +188,7 @@ func (r *Rule) scope() Scope {
 
 func (r *Rule) direction() RuleDirection {
 	if r.Direction == "" {
-		return RuleReceive
+		return RuleImport
 	}
 	return r.Direction
 }
@@ -262,13 +262,13 @@ func (m *Mapping) Validate() error {
 		}
 		ids[r.ID] = true
 		switch r.direction() {
-		case RuleReceive:
+		case RuleImport:
 			if !slices.Contains(scopes, r.scope()) {
 				errs = append(errs, fmt.Errorf("rules[%d]: unknown scope %q", i, r.Scope))
 			}
-		case RuleSend:
-			if !slices.Contains(sendScopes, r.scope()) {
-				errs = append(errs, fmt.Errorf("rules[%d]: scope %q is not available when sending", i, r.Scope))
+		case RuleExport:
+			if !slices.Contains(exportScopes, r.scope()) {
+				errs = append(errs, fmt.Errorf("rules[%d]: scope %q is not available when exporting", i, r.Scope))
 			}
 		default:
 			errs = append(errs, fmt.Errorf("rules[%d]: unknown direction %q", i, r.Direction))
@@ -339,7 +339,7 @@ func (m *Mapping) refersTo(field string) bool {
 		return false
 	}
 	for _, r := range m.Rules {
-		if r.direction() == RuleReceive && strings.Contains(r.JQ, field) {
+		if r.direction() == RuleImport && strings.Contains(r.JQ, field) {
 			return true
 		}
 	}

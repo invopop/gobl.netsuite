@@ -20,7 +20,7 @@ type probeOpts struct {
 	*rootOpts
 	mappingFlags
 	outFile    string
-	convert    bool
+	importDoc  bool
 	stripLinks bool
 	replace    []string
 	certName   string
@@ -44,14 +44,16 @@ func (p *probeOpts) cmd() *cobra.Command {
 	for _, rt := range []string{netsuite.RecordTypeInvoice, netsuite.RecordTypeCreditMemo} {
 		tx := &cobra.Command{
 			Use:   rt + " <id>",
-			Short: "Fetch a " + rt + " and the related records needed to convert it, as a bundle",
+			Short: "Fetch a " + rt + " and the related records needed to import it, as a bundle",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				return p.runTransaction(cmd, rt, args[0])
 			},
 		}
 		tx.Flags().StringVarP(&p.outFile, "out", "o", "", "file to write to, instead of stdout")
-		tx.Flags().BoolVar(&p.convert, "convert", false, "convert the bundle into a GOBL envelope")
+		tx.Flags().BoolVar(&p.importDoc, "import", false, "import the bundle into a GOBL envelope")
+		tx.Flags().BoolVar(&p.importDoc, "convert", false, "import the bundle into a GOBL envelope")
+		_ = tx.Flags().MarkDeprecated("convert", "use --import")
 		tx.Flags().BoolVar(&p.stripLinks, "strip-links", false, "remove links, which contain the account ID, e.g. to create test fixtures")
 		p.add(tx)
 		cmd.AddCommand(tx)
@@ -154,12 +156,12 @@ func (p *probeOpts) runTransaction(cmd *cobra.Command, recordType, id string) er
 	if err != nil {
 		return err
 	}
-	if p.convert {
+	if p.importDoc {
 		opts, err := p.options()
 		if err != nil {
 			return err
 		}
-		return convertBundle(cmd, b, p.outFile, opts...)
+		return importBundle(cmd, b, p.outFile, opts...)
 	}
 	data, err := json.Marshal(b)
 	if err != nil {

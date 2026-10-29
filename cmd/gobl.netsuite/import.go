@@ -12,21 +12,22 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type convertOpts struct {
+type importOpts struct {
 	*rootOpts
 	mappingFlags
 	outFile string
 }
 
-func convert(o *rootOpts) *convertOpts {
-	return &convertOpts{rootOpts: o}
+func importCmd(o *rootOpts) *importOpts {
+	return &importOpts{rootOpts: o}
 }
 
-func (c *convertOpts) cmd() *cobra.Command {
+func (c *importOpts) cmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "convert [infile]",
-		Short: "Convert a NetSuite invoice or credit memo bundle into a GOBL envelope",
-		Long: "Convert a NetSuite bundle, as produced by `probe invoice` or `probe creditmemo`, into a GOBL\n" +
+		Use:     "import [infile]",
+		Aliases: []string{"convert"},
+		Short:   "Import a NetSuite invoice or credit memo bundle into a GOBL envelope",
+		Long: "Import a NetSuite bundle, as produced by `probe invoice` or `probe creditmemo`, into a GOBL\n" +
 			"envelope. " +
 			"Reads from stdin if no file is given.",
 		Args: cobra.MaximumNArgs(1),
@@ -37,7 +38,7 @@ func (c *convertOpts) cmd() *cobra.Command {
 	return cmd
 }
 
-func (c *convertOpts) runE(cmd *cobra.Command, args []string) error {
+func (c *importOpts) runE(cmd *cobra.Command, args []string) error {
 	in := cmd.InOrStdin()
 	if len(args) > 0 && args[0] != "-" {
 		f, err := os.Open(args[0])
@@ -59,14 +60,14 @@ func (c *convertOpts) runE(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	return convertBundle(cmd, b, c.outFile, opts...)
+	return importBundle(cmd, b, c.outFile, opts...)
 }
 
-// convertBundle converts, calculates and outputs the GOBL envelope. Notices
+// importBundle imports, calculates and outputs the GOBL envelope. Notices
 // about unmapped data are printed to stderr, and an error is returned after
 // the output if the invoice is invalid or its totals differ from NetSuite's.
-func convertBundle(cmd *cobra.Command, b *netsuite.Bundle, outFile string, opts ...netsuite.Option) error {
-	res, err := netsuite.Convert(b, opts...)
+func importBundle(cmd *cobra.Command, b *netsuite.Bundle, outFile string, opts ...netsuite.Option) error {
+	res, err := netsuite.Import(b, opts...)
 	if err != nil {
 		return err
 	}

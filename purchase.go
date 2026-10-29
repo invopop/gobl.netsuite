@@ -49,14 +49,14 @@ type PurchaseOptions struct {
 	PendingApproval bool
 	// TaxCodes finds the account's tax code for each tax combo.
 	TaxCodes *TaxCodeIndex
-	// Mapping provides send rules to apply to the record, if any: line
+	// Mapping provides export rules to apply to the record, if any: line
 	// rules to each expense line, with $src its GOBL line, charge or
 	// discount, then document rules, with $src the invoice.
 	Mapping *Mapping
 }
 
-// Outbound is a NetSuite record body prepared from a GOBL document.
-type Outbound struct {
+// Record is a NetSuite record body prepared from a GOBL document.
+type Record struct {
 	// RecordType is the REST record type to create, such as vendorBill.
 	RecordType string `json:"record_type"`
 	// Body is the record to send.
@@ -65,7 +65,7 @@ type Outbound struct {
 	Notices []*Notice `json:"notices,omitempty"`
 }
 
-func (o *Outbound) notice(path, format string, args ...any) {
+func (o *Record) notice(path, format string, args ...any) {
 	o.Notices = append(o.Notices, &Notice{Path: path, Message: fmt.Sprintf(format, args...)})
 }
 
@@ -80,12 +80,12 @@ type expenseLine struct {
 	src    any
 }
 
-// NewPurchase prepares a vendor bill, or a vendor credit for a credit note,
+// ExportPurchase exports a vendor bill, or a vendor credit for a credit note,
 // from a calculated GOBL invoice received from a supplier. Each line, charge
 // and discount becomes an expense line in the account given, with its tax
 // amount set so the tax totals match the invoice's, as NetSuite would
 // otherwise round tax per line.
-func NewPurchase(inv *bill.Invoice, o *PurchaseOptions) (*Outbound, error) {
+func ExportPurchase(inv *bill.Invoice, o *PurchaseOptions) (*Record, error) {
 	if inv == nil || inv.Totals == nil {
 		return nil, fmt.Errorf("the invoice must be calculated")
 	}
@@ -96,7 +96,7 @@ func NewPurchase(inv *bill.Invoice, o *PurchaseOptions) (*Outbound, error) {
 		return nil, fmt.Errorf("invoices with retained taxes, such as withholding, are not supported yet")
 	}
 
-	out := &Outbound{RecordType: RecordTypeVendorBill}
+	out := &Record{RecordType: RecordTypeVendorBill}
 	switch inv.Type {
 	case bill.InvoiceTypeStandard:
 	case bill.InvoiceTypeCreditNote:
@@ -116,12 +116,12 @@ func NewPurchase(inv *bill.Invoice, o *PurchaseOptions) (*Outbound, error) {
 	out.Body = purchaseHeader(inv, o, out.RecordType)
 	items := expenseItems(lines, o, exp)
 	out.Body["expense"] = map[string]any{"items": items}
-	elements := make([]*sendElement, 0, len(items)+1)
+	elements := make([]*exportElement, 0, len(items)+1)
 	for i := range items {
-		elements = append(elements, &sendElement{scope: ScopeLine, target: &items[i], src: lines[i].src})
+		elements = append(elements, &exportElement{scope: ScopeLine, target: &items[i], src: lines[i].src})
 	}
-	elements = append(elements, &sendElement{scope: ScopeDocument, target: &out.Body, src: inv})
-	if err := applySendRules(o.Mapping, &out.Body, inv, elements); err != nil {
+	elements = append(elements, &exportElement{scope: ScopeDocument, target: &out.Body, src: inv})
+	if err := applyExportRules(o.Mapping, &out.Body, inv, elements); err != nil {
 		return nil, err
 	}
 	if out.RecordType == RecordTypeVendorCredit && len(inv.Preceding) > 0 {

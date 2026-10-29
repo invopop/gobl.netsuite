@@ -41,7 +41,7 @@ func purchaseOptions(t *testing.T) *netsuite.PurchaseOptions {
 	}
 }
 
-func expenseLines(t *testing.T, out *netsuite.Outbound) []map[string]any {
+func expenseLines(t *testing.T, out *netsuite.Record) []map[string]any {
 	t.Helper()
 	data, err := json.Marshal(out.Body["expense"])
 	require.NoError(t, err)
@@ -54,7 +54,7 @@ func expenseLines(t *testing.T, out *netsuite.Outbound) []map[string]any {
 
 func TestNewPurchase(t *testing.T) {
 	t.Run("vendor bill", func(t *testing.T) {
-		out, err := netsuite.NewPurchase(purchase(t, nil), purchaseOptions(t))
+		out, err := netsuite.ExportPurchase(purchase(t, nil), purchaseOptions(t))
 		require.NoError(t, err)
 		assert.Equal(t, netsuite.RecordTypeVendorBill, out.RecordType)
 		assert.Equal(t, "F2026-1043", out.Body["tranId"])
@@ -79,7 +79,7 @@ func TestNewPurchase(t *testing.T) {
 			delete(doc, "discounts")
 		})
 		assert.Equal(t, "0.22", inv.Totals.Tax.String(), "1.05 at 21%")
-		out, err := netsuite.NewPurchase(inv, purchaseOptions(t))
+		out, err := netsuite.ExportPurchase(inv, purchaseOptions(t))
 		require.NoError(t, err)
 		lines := expenseLines(t, out)
 		assert.Equal(t, []any{0.08, 0.07, 0.07}, []any{lines[0]["tax1Amt"], lines[1]["tax1Amt"], lines[2]["tax1Amt"]})
@@ -89,7 +89,7 @@ func TestNewPurchase(t *testing.T) {
 		inv := purchase(t, func(doc map[string]any) {
 			doc["lines"] = append(doc["lines"].([]any), map[string]any{"quantity": "2", "item": map[string]any{"name": "Water", "price": "1.19"}, "taxes": []any{map[string]any{"cat": "VAT", "rate": "reduced"}}})
 		})
-		out, err := netsuite.NewPurchase(inv, purchaseOptions(t))
+		out, err := netsuite.ExportPurchase(inv, purchaseOptions(t))
 		require.NoError(t, err)
 		lines := expenseLines(t, out)
 		require.Len(t, lines, 5)
@@ -100,7 +100,7 @@ func TestNewPurchase(t *testing.T) {
 	t.Run("pending approval", func(t *testing.T) {
 		o := purchaseOptions(t)
 		o.PendingApproval = true
-		out, err := netsuite.NewPurchase(purchase(t, nil), o)
+		out, err := netsuite.ExportPurchase(purchase(t, nil), o)
 		require.NoError(t, err)
 		assert.Equal(t, map[string]string{"id": "1"}, out.Body["approvalStatus"])
 	})
@@ -111,7 +111,7 @@ func TestNewPurchase(t *testing.T) {
 			doc["preceding"] = []any{map[string]any{"series": "F2026", "code": "1001", "issue_date": "2026-09-01"}}
 			delete(doc, "payment")
 		})
-		out, err := netsuite.NewPurchase(inv, purchaseOptions(t))
+		out, err := netsuite.ExportPurchase(inv, purchaseOptions(t))
 		require.NoError(t, err)
 		assert.Equal(t, netsuite.RecordTypeVendorCredit, out.RecordType)
 		assert.NotContains(t, out.Body, "dueDate")
@@ -127,12 +127,12 @@ func TestNewPurchase(t *testing.T) {
 			}}}
 			delete(doc, "discounts")
 		})
-		_, err := netsuite.NewPurchase(inv, purchaseOptions(t))
+		_, err := netsuite.ExportPurchase(inv, purchaseOptions(t))
 		assert.ErrorContains(t, err, "retained taxes")
 	})
 
 	t.Run("missing options", func(t *testing.T) {
-		_, err := netsuite.NewPurchase(purchase(t, nil), &netsuite.PurchaseOptions{Subsidiary: "3"})
+		_, err := netsuite.ExportPurchase(purchase(t, nil), &netsuite.PurchaseOptions{Subsidiary: "3"})
 		assert.ErrorContains(t, err, "are required")
 	})
 }
