@@ -1,0 +1,102 @@
+{
+	"$regime": "ES",
+	"uuid": "0190a63b-6f6c-7d6e-9a2c-3d4e5f60718a",
+	"type": "standard",
+	"code": "6",
+	"issue_date": "2026-09-24",
+	"currency": "EUR",
+	"tax": {
+		"rounding": "currency"
+	},
+	"supplier": {
+		"name": "Invopop SL",
+		"tax_id": {
+			"country": "ES",
+			"code": "B85905495"
+		},
+		"addresses": [
+			{
+				"street": "Calle Pradillo, 42",
+				"locality": "Madrid",
+				"code": "28002",
+				"country": "ES"
+			}
+		]
+	},
+	"customer": {
+		"name": "SAP SE",
+		"tax_id": {
+			"country": "DE",
+			"code": "143454214"
+		},
+		"addresses": [
+			{
+				"street": "Dietmar-Hopp-Allee 16",
+				"locality": "Walldorf",
+				"code": "69190",
+				"country": "DE"
+			}
+		],
+		"emails": [
+			{
+				"addr": "invoices@sap.example"
+			}
+		]
+	},
+	"lines": [
+		{
+			"i": 1,
+			"quantity": "25",
+			"item": {
+				"name": "NONINV-001 Shipping",
+				"price": "48.60"
+			},
+			"sum": "1215.00",
+			"taxes": [
+				{
+					"cat": "VAT",
+					"key": "intra-community"
+				}
+			],
+			"total": "1215.00"
+		}
+	],
+	"payment": {
+		"terms": {
+			"due_dates": [
+				{
+					"date": "2026-09-24",
+					"amount": "1215.00",
+					"percent": "100%"
+				}
+			]
+		}
+	},
+	"totals": {
+		"sum": "1215.00",
+		"total": "1215.00",
+		"taxes": {
+			"categories": [
+				{
+					"code": "VAT",
+					"rates": [
+						{
+							"key": "intra-community",
+							"base": "1215.00",
+							"amount": "0.00"
+						}
+					],
+					"amount": "0.00"
+				}
+			],
+			"sum": "0.00"
+		},
+		"tax": "0.00",
+		"total_with_tax": "1215.00",
+		"payable": "1215.00"
+	},
+	"meta": {
+		"netsuite-id": "6",
+		"netsuite-type": "invoice"
+	}
+}

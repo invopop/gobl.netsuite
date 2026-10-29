@@ -1,0 +1,613 @@
+{
+  "currencies": {
+    "1": {
+      "currencyPrecision": 2,
+      "displaySymbol": "€",
+      "exchangeRate": 1,
+      "formatSample": "€1.234,56",
+      "id": "1",
+      "isBaseCurrency": true,
+      "isInactive": false,
+      "lastModifiedDate": "2026-09-23T13:08:00Z",
+      "locale": {
+        "id": "es_ES_EURO",
+        "refName": "Spain (Spanish EURO)"
+      },
+      "name": "ESP",
+      "overrideCurrencyFormat": false,
+      "symbol": "EUR",
+      "symbolPlacement": {
+        "id": "1",
+        "refName": "Before Number"
+      }
+    }
+  },
+  "customer": {
+    "accessRole": {
+      "id": "14",
+      "refName": "Customer Centre"
+    },
+    "addressBook": {
+      "items": [
+        {
+          "addressBookAddress": {
+            "addr1": "Gran Vía 28",
+            "addrText": "Telefónica de España, S.A.U.\nGran Vía 28\nMadrid  28013\nSpain",
+            "addressee": "Telefónica de España, S.A.U.",
+            "city": "Madrid",
+            "country": {
+              "id": "ES",
+              "refName": "Spain"
+            },
+            "override": false,
+            "zip": "28013"
+          },
+          "addressBookAddress_text": "Telefónica de España, S.A.U.\nGran Vía 28\nMadrid  28013\nSpain",
+          "addressId": "1",
+          "defaultBilling": true,
+          "defaultShipping": true,
+          "id": 1,
+          "internalId": 1,
+          "isResidential": false,
+          "label": "Gran Vía 28"
+        }
+      ],
+      "totalResults": 1
+    },
+    "aging": 8723.73,
+    "aging1": 0,
+    "aging2": 0,
+    "aging3": 0,
+    "aging4": 0,
+    "alcoholRecipientType": {
+      "id": "CONSUMER",
+      "refName": "Consumer"
+    },
+    "balance": 8723.73,
+    "companyName": "Telefónica de España, S.A.U.",
+    "contactList": {
+      "count": 0,
+      "hasMore": false,
+      "items": [],
+      "offset": 0,
+      "totalResults": 0
+    },
+    "contactRoles": {
+      "items": [],
+      "totalResults": 0
+    },
+    "creditHoldOverride": {
+      "id": "AUTO",
+      "refName": "Auto"
+    },
+    "currency": {
+      "id": "1",
+      "refName": "ESP"
+    },
+    "currencyList": {
+      "items": [
+        {
+          "balance": 8723.73,
+          "currency": {
+            "id": "1",
+            "refName": "ESP"
+          },
+          "depositBalance": 0,
+          "displaySymbol": "€",
+          "overdueBalance": 0,
+          "overrideCurrencyFormat": false,
+          "symbolPlacement": {
+            "id": "1",
+            "refName": "Before Number"
+          },
+          "unbilledOrders": 0
+        }
+      ],
+      "totalResults": 1
+    },
+    "customForm": {
+      "id": "-2",
+      "refName": "Standard Customer Form"
+    },
+    "dateCreated": "2026-09-23T09:06:00Z",
+    "daysOverdue": 0,
+    "defaultAddress": "Telefónica de España, S.A.U.\nGran Vía 28\nMadrid  28013\nSpain",
+    "depositBalance": 0,
+    "emailPreference": {
+      "id": "DEFAULT",
+      "refName": "Default"
+    },
+    "emailTransactions": false,
+    "entityId": "1 Telefónica de España, S.A.U.",
+    "entityStatus": {
+      "id": "13",
+      "refName": "CUSTOMER-Closed Won"
+    },
+    "faxTransactions": false,
+    "giveAccess": false,
+    "groupPricing": {
+      "items": [],
+      "totalResults": 0
+    },
+    "id": "5",
+    "isBudgetApproved": false,
+    "isInactive": false,
+    "isPerson": false,
+    "itemPricing": {
+      "items": [],
+      "totalResults": 0
+    },
+    "lastModifiedDate": "2026-09-23T09:19:00Z",
+    "monthlyClosing": {
+      "id": "31",
+      "refName": "End of the Month"
+    },
+    "overdueBalance": 0,
+    "printTransactions": false,
+    "receivablesAccount": {
+      "id": "-10",
+      "refName": "Use System Preference"
+    },
+    "sendEmail": false,
+    "shipComplete": false,
+    "shippingCarrier": {
+      "id": "nonups",
+      "refName": "FedEx/USPS/More"
+    },
+    "subsidiary": {
+      "id": "3",
+      "refName": "Invopop SL"
+    },
+    "taxExempt": true,
+    "taxable": false,
+    "terms": {
+      "id": "2",
+      "refName": "Net 30"
+    },
+    "unbilledOrders": 0,
+    "vatRegNumber": "ESA82018474"
+  },
+  "related": {
+    "1": {
+      "amountPaid": 907.5,
+      "amountRemaining": 2722.5,
+      "amountRemainingTotalBox": 2722.5,
+      "billAddress": "Telefónica de España, S.A.U.\nGran Vía 28\nMadrid  28013\nSpain",
+      "billAddressList": {
+        "id": "1",
+        "refName": "Gran Vía 28"
+      },
+      "billingAddress": {},
+      "billingAddress_text": "Telefónica de España, S.A.U.\nGran Vía 28\nMadrid  28013\nSpain",
+      "canHaveStackable": false,
+      "class": {
+        "id": "1",
+        "refName": "Consulting Services"
+      },
+      "createdDate": "2026-09-24T16:10:00Z",
+      "currency": {
+        "id": "1",
+        "refName": "ESP"
+      },
+      "customForm": {
+        "id": "91",
+        "refName": "Standard Service Invoice"
+      },
+      "department": {
+        "id": "1",
+        "refName": "Sales"
+      },
+      "discountTotal": 0,
+      "dueDate": "2026-10-24",
+      "entity": {
+        "id": "5",
+        "refName": "1 Telefónica de España, S.A.U."
+      },
+      "exchangeRate": 1,
+      "expCost": {},
+      "expCostDiscPrint": false,
+      "id": "1",
+      "item": {},
+      "itemCost": {},
+      "itemCostDiscPrint": false,
+      "lastModifiedDate": "2026-09-24T16:10:00Z",
+      "location": {
+        "id": "1",
+        "refName": "ES - Madrid Office"
+      },
+      "postingPeriod": {
+        "id": "30",
+        "refName": "Sep 2026"
+      },
+      "prevDate": "2026-09-24",
+      "salesEffectiveDate": "2026-09-24",
+      "shipAddress": "Telefónica de España, S.A.U.\nGran Vía 28\nMadrid  28013\nSpain",
+      "shipAddressList": {
+        "id": "1",
+        "refName": "Gran Vía 28"
+      },
+      "shipDate": "2026-09-24",
+      "shipIsResidential": false,
+      "shipOverride": false,
+      "shippingAddress": {},
+      "shippingAddress_text": "Telefónica de España, S.A.U.\nGran Vía 28\nMadrid  28013\nSpain",
+      "status": {
+        "id": "Open",
+        "refName": "Open"
+      },
+      "subsidiary": {
+        "id": "3",
+        "refName": "Invopop SL"
+      },
+      "subtotal": 3000,
+      "taxTotal": 630,
+      "terms": {
+        "id": "2",
+        "refName": "Net 30"
+      },
+      "time": {},
+      "timeDiscPrint": false,
+      "toBeEmailed": false,
+      "toBeFaxed": false,
+      "toBePrinted": false,
+      "total": 3630,
+      "tranDate": "2026-09-24",
+      "tranId": "1",
+      "transactionNumber": "CUSTINVC1",
+      "type": {
+        "id": "custinvc",
+        "refName": "custinvc"
+      },
+      "vatRegNum": "ESA82018474"
+    }
+  },
+  "subsidiary": {
+    "checklayout": {
+      "id": "50",
+      "refName": "Standard Check Layout"
+    },
+    "country": {
+      "id": "ES",
+      "refName": "Spain"
+    },
+    "currency": {
+      "id": "1",
+      "refName": "ESP"
+    },
+    "edition": {
+      "id": "XX",
+      "refName": "XX"
+    },
+    "federalIdNumber": "B85905495",
+    "fiscalCalendar": {
+      "id": "1",
+      "refName": "Standard Fiscal Calendar"
+    },
+    "id": "3",
+    "isElimination": false,
+    "isInactive": false,
+    "lastModifiedDate": "2026-09-23T12:59:00Z",
+    "legalName": "Invopop SL",
+    "logo": {
+      "id": "1",
+      "refName": "InvopopLogo.jpeg"
+    },
+    "mainAddress": {
+      "addr1": "Calle Pradillo, 42",
+      "addrText": "Invopop SL\r\nCalle Pradillo, 42\r\nMadrid  28002\r\nSpain",
+      "addressee": "Invopop SL",
+      "city": "Madrid",
+      "country": {
+        "id": "ES",
+        "refName": "Spain"
+      },
+      "override": false,
+      "zip": "28002"
+    },
+    "name": "Invopop SL",
+    "nexus": {
+      "items": [
+        {
+          "country": "ES",
+          "nexusId": {
+            "id": "1",
+            "refName": "Spain "
+          }
+        }
+      ],
+      "totalResults": 1
+    },
+    "pageLogo": {
+      "id": "1",
+      "refName": "InvopopLogo.jpeg"
+    },
+    "parent": {
+      "id": "1",
+      "refName": "Parent Company"
+    },
+    "returnAddress": {
+      "addrText": "Spain",
+      "country": {
+        "id": "ES",
+        "refName": "Spain"
+      },
+      "override": false
+    },
+    "shippingAddress": {
+      "addrText": "Spain",
+      "country": {
+        "id": "ES",
+        "refName": "Spain"
+      },
+      "override": false
+    },
+    "showSubsidiaryName": false,
+    "taxFiscalCalendar": {
+      "id": "1",
+      "refName": "Standard Fiscal Calendar"
+    }
+  },
+  "taxCodes": {
+    "6": {
+      "available": {
+        "id": "BOTH",
+        "refName": "Both"
+      },
+      "description": "Standard Domestic rate",
+      "ecCode": false,
+      "excludeFromTaxReports": false,
+      "exempt": false,
+      "export": false,
+      "id": "6",
+      "includeChildren": false,
+      "isDefault": false,
+      "isInactive": false,
+      "itemId": "S-ES",
+      "itemType": "TaxItem",
+      "nexusCountry": {
+        "id": "ES",
+        "refName": "ES"
+      },
+      "purchaseAccount": {
+        "id": "126",
+        "refName": "126"
+      },
+      "rate": 21,
+      "reverseCharge": false,
+      "saleAccount": {
+        "id": "125",
+        "refName": "125"
+      },
+      "service": false,
+      "subsidiary": {},
+      "taxAgency": {
+        "id": "2",
+        "refName": "Tax Agency ES"
+      },
+      "taxType": {
+        "id": "1",
+        "refName": "VAT"
+      }
+    }
+  },
+  "transaction": {
+    "amountPaid": 907.5,
+    "amountRemaining": 0,
+    "applied": 907.5,
+    "apply": {
+      "items": [
+        {
+          "amount": 907.5,
+          "apply": true,
+          "applyDate": "2026-09-24",
+          "currency": "ESP",
+          "doc": {
+            "id": "1",
+            "refName": "1"
+          },
+          "due": 3630,
+          "line": 0,
+          "refNum": "1",
+          "total": 3630,
+          "type": "Invoice"
+        },
+        {
+          "apply": false,
+          "applyDate": "2026-09-24",
+          "currency": "ESP",
+          "doc": {
+            "id": "10",
+            "refName": "10"
+          },
+          "due": 2904,
+          "line": 0,
+          "refNum": "10",
+          "total": 2904,
+          "type": "Invoice"
+        },
+        {
+          "apply": false,
+          "applyDate": "2026-09-24",
+          "currency": "ESP",
+          "doc": {
+            "id": "11",
+            "refName": "11"
+          },
+          "due": 1673.42,
+          "line": 0,
+          "refNum": "12",
+          "total": 1673.42,
+          "type": "Invoice"
+        },
+        {
+          "apply": false,
+          "applyDate": "2026-09-24",
+          "currency": "ESP",
+          "doc": {
+            "id": "4",
+            "refName": "4"
+          },
+          "due": 1423.81,
+          "line": 0,
+          "refNum": "4",
+          "total": 1786.81,
+          "type": "Invoice"
+        }
+      ],
+      "totalResults": 4
+    },
+    "autoApply": false,
+    "billAddress": "Telefónica de España, S.A.U.\nGran Vía 28\nMadrid  28013\nSpain",
+    "billAddressList": {
+      "id": "1",
+      "refName": "Gran Vía 28"
+    },
+    "billingAddress": {
+      "addr1": "Gran Vía 28",
+      "addrText": "Telefónica de España, S.A.U.\nGran Vía 28\nMadrid  28013\nSpain",
+      "addressee": "Telefónica de España, S.A.U.",
+      "city": "Madrid",
+      "country": {
+        "id": "ES",
+        "refName": "Spain"
+      },
+      "override": false,
+      "zip": "28013"
+    },
+    "billingAddress_text": "Telefónica de España, S.A.U.\nGran Vía 28\nMadrid  28013\nSpain",
+    "canHaveStackable": false,
+    "class": {
+      "id": "1",
+      "refName": "Consulting Services"
+    },
+    "createdDate": "2026-09-24T21:46:00Z",
+    "createdFrom": {
+      "id": "1",
+      "refName": "Invoice #1"
+    },
+    "currency": {
+      "id": "1",
+      "refName": "ESP"
+    },
+    "customForm": {
+      "id": "94",
+      "refName": "Standard Credit Memo"
+    },
+    "department": {
+      "id": "1",
+      "refName": "Sales"
+    },
+    "discountTotal": 0,
+    "entity": {
+      "id": "5",
+      "refName": "1 Telefónica de España, S.A.U."
+    },
+    "exchangeRate": 1,
+    "id": "12",
+    "item": {
+      "items": [
+        {
+          "account": {
+            "id": "134",
+            "refName": "134"
+          },
+          "amount": 750,
+          "grossAmt": 907.5,
+          "item": {
+            "id": "14",
+            "refName": "SVC-001 Consulting"
+          },
+          "itemSubtype": {
+            "id": "Sale",
+            "refName": "Sale"
+          },
+          "itemType": {
+            "id": "Service",
+            "refName": "Service"
+          },
+          "line": 4,
+          "lineUniqueKey": "77",
+          "marginal": false,
+          "price": {
+            "id": "1",
+            "refName": "Base Price"
+          },
+          "printItems": false,
+          "quantity": 5,
+          "rate": 150,
+          "tax1Amt": 157.5,
+          "taxCode": {
+            "id": "6",
+            "refName": "VAT:S-ES"
+          },
+          "taxRate1": 21
+        }
+      ],
+      "totalResults": 1
+    },
+    "lastModifiedDate": "2026-09-24T21:47:00Z",
+    "location": {
+      "id": "1",
+      "refName": "ES - Madrid Office"
+    },
+    "memo": "Test: partial credit of invoice 1",
+    "originator": "restWebServices",
+    "postingPeriod": {
+      "id": "30",
+      "refName": "Sep 2026"
+    },
+    "prevDate": "2026-09-24",
+    "salesEffectiveDate": "2026-09-24",
+    "shipAddress": "Telefónica de España, S.A.U.\nGran Vía 28\nMadrid  28013\nSpain",
+    "shipAddressList": {
+      "id": "1",
+      "refName": "Gran Vía 28"
+    },
+    "shipIsResidential": false,
+    "shipOverride": false,
+    "shippingAddress": {
+      "addr1": "Gran Vía 28",
+      "addrText": "Telefónica de España, S.A.U.\nGran Vía 28\nMadrid  28013\nSpain",
+      "addressee": "Telefónica de España, S.A.U.",
+      "city": "Madrid",
+      "country": {
+        "id": "ES",
+        "refName": "Spain"
+      },
+      "override": false,
+      "zip": "28013"
+    },
+    "shippingAddress_text": "Telefónica de España, S.A.U.\nGran Vía 28\nMadrid  28013\nSpain",
+    "source": {
+      "id": "REST Web Services",
+      "refName": "REST Web Services"
+    },
+    "sourceSystem": {
+      "id": "restWebServices",
+      "refName": "REST Web Services"
+    },
+    "status": {
+      "id": "Fully Applied",
+      "refName": "Fully Applied"
+    },
+    "subsidiary": {
+      "id": "3",
+      "refName": "Invopop SL"
+    },
+    "subtotal": 750,
+    "taxTotal": 157.5,
+    "toBeEmailed": false,
+    "toBeFaxed": false,
+    "toBePrinted": false,
+    "total": 907.5,
+    "tranDate": "2026-09-24",
+    "tranId": "2",
+    "transactionNumber": "CUSTCRED2",
+    "type": {
+      "id": "custcred",
+      "refName": "custcred"
+    },
+    "unapplied": 0,
+    "vatRegNum": "ESA82018474"
+  }
+}
