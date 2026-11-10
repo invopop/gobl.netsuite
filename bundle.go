@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"github.com/invopop/gobl.netsuite/client"
+	"github.com/invopop/gobl/l10n"
+	"github.com/invopop/gobl/org"
 )
 
 // Record types of the transactions supported by the conversion.
@@ -101,6 +103,14 @@ func fetchTransaction(ctx context.Context, nc *client.Client, recordType, id str
 			// TODO: accounts may also use tax groups (record type "taxgroup")
 			// that combine several tax codes, which are not supported yet.
 			if err := fetchInto(ctx, nc, "salestaxitem", it.TaxCode, b.TaxCodes); err != nil {
+				return nil, err
+			}
+		}
+	}
+	// With SuiteTax, the tax codes are in the tax details instead.
+	if tx.TaxDetails != nil {
+		for _, d := range tx.TaxDetails.Items {
+			if err := fetchInto(ctx, nc, "salestaxitem", d.TaxCode, b.TaxCodes); err != nil {
 				return nil, err
 			}
 		}
@@ -258,6 +268,29 @@ func (b *Bundle) parse() (*records, error) {
 		r.related[id] = tx
 	}
 	return r, nil
+}
+
+// supplierCountry provides the country where the supplier accounts for tax:
+// the subsidiary's or, in accounts without OneWorld, the supplier party's.
+func (r *records) supplierCountry(supplier *org.Party) (l10n.TaxCountryCode, error) {
+	if r.subsidiary != nil {
+		if r.subsidiary.Country == nil || r.subsidiary.Country.ID == "" {
+			return "", fmt.Errorf("subsidiary %s: country is required", r.subsidiary.ID)
+		}
+		return l10n.TaxCountryCode(r.subsidiary.Country.ID), nil
+	}
+	if supplier == nil {
+		return "", fmt.Errorf("a subsidiary, or a supplier party in accounts without OneWorld, is required to determine the supplier")
+	}
+	if supplier.TaxID != nil && supplier.TaxID.Country != "" {
+		return supplier.TaxID.Country, nil
+	}
+	for _, a := range supplier.Addresses {
+		if a != nil && a.Country != "" {
+			return l10n.TaxCountryCode(a.Country), nil
+		}
+	}
+	return "", fmt.Errorf("supplier: a tax ID or address with a country is required")
 }
 
 // transactionType returns the transaction's type ID in lowercase, e.g.

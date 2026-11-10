@@ -63,6 +63,7 @@ func TestNewPurchase(t *testing.T) {
 		assert.Equal(t, "se1", out.Body["externalId"])
 		assert.Equal(t, "Mobile and fibre, September 2026", out.Body["memo"])
 		assert.NotContains(t, out.Body, "approvalStatus")
+		assert.Equal(t, map[string]string{"id": "3"}, out.Body["subsidiary"])
 
 		lines := expenseLines(t, out)
 		require.Len(t, lines, 4)
@@ -129,6 +130,14 @@ func TestNewPurchase(t *testing.T) {
 		})
 		_, err := netsuite.ExportPurchase(inv, purchaseOptions(t))
 		assert.ErrorContains(t, err, "retained taxes")
+	})
+
+	t.Run("without OneWorld", func(t *testing.T) {
+		o := purchaseOptions(t)
+		o.Subsidiary = ""
+		out, err := netsuite.ExportPurchase(purchase(t, nil), o)
+		require.NoError(t, err)
+		assert.NotContains(t, out.Body, "subsidiary")
 	})
 
 	t.Run("missing options", func(t *testing.T) {

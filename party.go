@@ -1,6 +1,8 @@
 package netsuite
 
 import (
+	"encoding/json"
+	"slices"
 	"strings"
 
 	"github.com/invopop/gobl/cbc"
@@ -27,6 +29,43 @@ func newSupplier(sub *Subsidiary) *org.Party {
 		p.Emails = []*org.Email{{Address: sub.Email}}
 	}
 	return p
+}
+
+// copyParty copies a party given by the caller, so the conversion can
+// change it.
+func copyParty(p *org.Party) (*org.Party, error) {
+	data, err := json.Marshal(p)
+	if err != nil {
+		return nil, err
+	}
+	out := new(org.Party)
+	if err := json.Unmarshal(data, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// addInboxes adds copies of the inboxes the party doesn't have yet.
+func addInboxes(p *org.Party, inboxes []*org.Inbox) error {
+	for _, in := range inboxes {
+		if in == nil || slices.ContainsFunc(p.Inboxes, func(have *org.Inbox) bool { return sameInbox(have, in) }) {
+			continue
+		}
+		data, err := json.Marshal(in)
+		if err != nil {
+			return err
+		}
+		cp := new(org.Inbox)
+		if err := json.Unmarshal(data, cp); err != nil {
+			return err
+		}
+		p.Inboxes = append(p.Inboxes, cp)
+	}
+	return nil
+}
+
+func sameInbox(a, b *org.Inbox) bool {
+	return a != nil && a.Scheme == b.Scheme && a.Code == b.Code && a.URL == b.URL && a.Email == b.Email
 }
 
 // newCustomer builds the customer, preferring details on the invoice itself

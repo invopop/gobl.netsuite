@@ -12,7 +12,6 @@ import (
 	"github.com/invopop/gobl/cal"
 	"github.com/invopop/gobl/cbc"
 	"github.com/invopop/gobl/currency"
-	"github.com/invopop/gobl/l10n"
 	"github.com/invopop/gobl/num"
 	"github.com/invopop/gobl/org"
 	"github.com/invopop/gobl/pay"
@@ -72,7 +71,9 @@ func (r *Result) notice(path, format string, args ...any) {
 // invoice.
 //
 // The conversion supports accounts using legacy tax, with a tax code per
-// line, and requires OneWorld, as the supplier is taken from the subsidiary.
+// line, or SuiteTax, with a single tax per line in the tax details. The
+// supplier is built from the subsidiary, or given with WithSupplier in
+// accounts without OneWorld, and WithInboxes adds registered inboxes to it.
 // The mapping from the presets and options is applied, but the resulting
 // invoice is not calculated: calculate and validate it, then call
 // CheckTotals to compare with the amounts calculated by NetSuite.
@@ -115,15 +116,12 @@ func importTransaction(b *Bundle, txType string, opts []Option) (*Result, error)
 	}
 	res := &Result{Source: b, records: recs}
 
-	if recs.subsidiary == nil {
-		return nil, fmt.Errorf("transaction %s: subsidiary is required to determine the supplier", src.ID)
-	}
-	if recs.subsidiary.Country == nil || recs.subsidiary.Country.ID == "" {
-		return nil, fmt.Errorf("subsidiary %s: country is required", recs.subsidiary.ID)
-	}
-	country := l10n.TaxCountryCode(recs.subsidiary.Country.ID)
-
 	o := newOptions(opts)
+	country, err := recs.supplierCountry(o.supplier)
+	if err != nil {
+		return nil, fmt.Errorf("transaction %s: %w", src.ID, err)
+	}
+
 	if res.Mapping, err = o.mapping(country); err != nil {
 		return nil, err
 	}
@@ -150,14 +148,31 @@ func importTransaction(b *Bundle, txType string, opts []Option) (*Result, error)
 		return nil, fmt.Errorf("transaction tranDate: %w", err)
 	}
 
-	if err := res.setCurrency(); err != nil {
+	if err := res.setCurrency(o.base); err != nil {
 		return nil, err
 	}
 
-	inv.Supplier = newSupplier(recs.subsidiary)
+	if recs.subsidiary != nil {
+		inv.Supplier = newSupplier(recs.subsidiary)
+	} else if inv.Supplier, err = copyParty(o.supplier); err != nil {
+		return nil, fmt.Errorf("supplier: %w", err)
+	}
+	if err := addInboxes(inv.Supplier, o.inboxes); err != nil {
+		return nil, fmt.Errorf("supplier inboxes: %w", err)
+	}
 	res.track(ScopeSupplier, inv.Supplier, b.Subsidiary)
 	inv.Customer = newCustomer(src, recs.customer)
 	res.track(ScopeCustomer, inv.Customer, b.Customer)
+
+	suiteTax, err := res.useTaxDetails(o.taxEngine)
+	if err != nil {
+		return nil, err
+	}
+	if suiteTax {
+		if err := res.applyTaxDetails(); err != nil {
+			return nil, err
+		}
+	}
 
 	if err := res.setLines(country); err != nil {
 		return nil, err
@@ -217,7 +232,7 @@ func (r *Result) setPreceding() error {
 // setCurrency sets the invoice currency using the ISO code from the currency
 // record, adding an exchange rate when it differs from the subsidiary's base
 // currency.
-func (r *Result) setCurrency() error {
+func (r *Result) setCurrency(given currency.Code) error {
 	src := r.records.transaction
 	cur, err := r.currency(src.Currency)
 	if err != nil {
@@ -225,9 +240,9 @@ func (r *Result) setCurrency() error {
 	}
 	r.Invoice.Currency = cur
 
-	base, err := r.currency(r.records.subsidiary.Currency)
+	base, err := r.baseCurrency(given)
 	if err != nil {
-		return fmt.Errorf("subsidiary currency: %w", err)
+		return err
 	}
 	if base == cur {
 		return nil
@@ -242,6 +257,22 @@ func (r *Result) setCurrency() error {
 		{From: cur, To: base, Amount: rate},
 	}
 	return nil
+}
+
+// baseCurrency provides the currency the supplier keeps its books in: the
+// subsidiary's, or the one given for transactions without a subsidiary.
+func (r *Result) baseCurrency(given currency.Code) (currency.Code, error) {
+	if r.records.subsidiary != nil {
+		base, err := r.currency(r.records.subsidiary.Currency)
+		if err != nil {
+			return currency.CodeEmpty, fmt.Errorf("subsidiary currency: %w", err)
+		}
+		return base, nil
+	}
+	if given.Def() == nil {
+		return currency.CodeEmpty, fmt.Errorf("the base currency is required for transactions without a subsidiary")
+	}
+	return given, nil
 }
 
 func (r *Result) currency(ref *Ref) (currency.Code, error) {
