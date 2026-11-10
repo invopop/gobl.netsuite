@@ -49,6 +49,9 @@ type Transaction struct {
 	Email          string            `json:"email,omitempty"`
 	BillingAddress *Address          `json:"billingAddress,omitempty"`
 	Item           *TransactionItems `json:"item,omitempty"`
+	// TaxDetails lists the taxes of each line in accounts using SuiteTax,
+	// whose lines have no tax code of their own.
+	TaxDetails *TaxDetailsList `json:"taxDetails,omitempty"`
 
 	// CreatedFrom is the transaction this one was created from, such as the
 	// invoice a credit memo was created from.
@@ -83,6 +86,28 @@ type TransactionItem struct {
 	TaxCode     *Ref        `json:"taxCode,omitempty"`
 	TaxRate1    json.Number `json:"taxRate1,omitempty"`
 	Tax1Amt     json.Number `json:"tax1Amt,omitempty"`
+	// TaxDetailsReference links the line to its entries in the
+	// transaction's tax details, in accounts using SuiteTax.
+	TaxDetailsReference string `json:"taxDetailsReference,omitempty"`
+}
+
+// TaxDetailsList is the expanded tax details sublist of a transaction in
+// accounts using SuiteTax.
+type TaxDetailsList struct {
+	Items []*TaxDetail `json:"items"`
+}
+
+// TaxDetail is a tax charged on a line in accounts using SuiteTax, linked
+// to the line by its tax details reference. A line may have several, such
+// as state and county sales taxes.
+type TaxDetail struct {
+	TaxDetailsReference string      `json:"taxDetailsReference,omitempty"`
+	LineType            string      `json:"lineType,omitempty"`
+	TaxType             *Ref        `json:"taxType,omitempty"`
+	TaxCode             *Ref        `json:"taxCode,omitempty"`
+	TaxBasis            json.Number `json:"taxBasis,omitempty"`
+	TaxRate             json.Number `json:"taxRate,omitempty"`
+	TaxAmount           json.Number `json:"taxAmount,omitempty"`
 }
 
 // ApplyList is the expanded apply sublist of a credit memo.

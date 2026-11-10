@@ -70,11 +70,11 @@ func TestFromInvoice(t *testing.T) {
 		assert.Empty(t, res.Unmapped)
 	})
 
-	t.Run("requires a subsidiary", func(t *testing.T) {
+	t.Run("requires a subsidiary or supplier", func(t *testing.T) {
 		b := basicBundle(t)
 		b.Subsidiary = nil
 		_, err := netsuite.ImportInvoice(b)
-		assert.ErrorContains(t, err, "subsidiary is required")
+		assert.ErrorContains(t, err, "a subsidiary, or a supplier party in accounts without OneWorld, is required")
 	})
 
 	t.Run("requires tax codes in the bundle", func(t *testing.T) {

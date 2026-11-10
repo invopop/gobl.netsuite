@@ -8,10 +8,12 @@ Copyright [Invopop Ltd.](https://invopop.com) 2026. Released publicly under the 
 
 ## Status
 
-Early development. NetSuite invoices and credit memos can be converted into GOBL invoices and credit notes for accounts that:
+Early development. NetSuite invoices and credit memos can be converted into GOBL invoices and credit notes for accounts using:
 
-- use **legacy tax** (a tax code per line) rather than SuiteTax,
-- are **OneWorld**, as the supplier is taken from the invoice's subsidiary.
+- **Legacy tax**, with a tax code per line, or **SuiteTax**, where each line's taxes are in the transaction's tax details (`taxDetails`, linked by `taxDetailsReference`). The engine is detected from the transaction, or set with `WithTaxEngine`. With SuiteTax, only one tax per line is supported for now, so US state and county sales taxes aren't. SuiteTax support is built from NetSuite's documentation and hasn't been tested against a live account yet.
+- **OneWorld**, where the supplier is built from the transaction's subsidiary, or **no OneWorld**, where there are no subsidiaries. NetSuite's REST API doesn't provide the company information, so the caller gives the supplier party with `WithSupplier`, and the base currency with `WithBaseCurrency`. A subsidiary always provides the supplier when the transaction has one. `WithInboxes` adds inboxes NetSuite doesn't keep, such as those a party is registered with in Peppol.
+
+Vendor bills, vendor credits and vendors are exported with the subsidiary given, or without one in accounts without OneWorld.
 
 Discount lines become line discounts when they directly follow a line with the same tax code, and invoice discounts with their own tax code otherwise (e.g. after a subtotal), matching how NetSuite taxes them. Header discounts are shared between tax codes in proportion to their net amounts, as NetSuite does. Totals use GOBL's `currency` rounding, as NetSuite rounds line amounts and the tax of each rate before summing.
 
