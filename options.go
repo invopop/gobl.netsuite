@@ -11,7 +11,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/invopop/gobl/currency"
 	"github.com/invopop/gobl/l10n"
+	"github.com/invopop/gobl/org"
 )
 
 // Option configures a conversion.
@@ -22,6 +24,61 @@ type options struct {
 	presetsSet bool
 	mappings   []*Mapping
 	timeout    time.Duration
+	taxEngine  TaxEngine
+	supplier   *org.Party
+	inboxes    []*org.Inbox
+	base       currency.Code
+}
+
+// WithSupplier sets the supplier of transactions without a subsidiary, as
+// in accounts without OneWorld, which also need WithBaseCurrency. A
+// transaction's subsidiary always provides the supplier when it has one.
+// The party is copied, so rules applied to the supplier don't change it.
+func WithSupplier(p *org.Party) Option {
+	return func(o *options) {
+		o.supplier = p
+	}
+}
+
+// WithInboxes adds inboxes to the supplier, such as those a network like
+// Peppol registered it with, which NetSuite doesn't keep. They're copied,
+// and those the supplier already has are skipped.
+func WithInboxes(inboxes ...*org.Inbox) Option {
+	return func(o *options) {
+		o.inboxes = append(o.inboxes, inboxes...)
+	}
+}
+
+// WithBaseCurrency sets the currency the supplier keeps its books in, which
+// exchange rates convert into, for transactions without a subsidiary.
+func WithBaseCurrency(c currency.Code) Option {
+	return func(o *options) {
+		o.base = c
+	}
+}
+
+// TaxEngine is how a NetSuite account calculates tax.
+type TaxEngine string
+
+// Tax engines.
+const (
+	// TaxEngineAuto uses the transaction's tax details when it has any,
+	// and the tax codes of its lines otherwise.
+	TaxEngineAuto TaxEngine = ""
+	// TaxEngineLegacy is NetSuite's original tax, with a tax code and rate
+	// on each line.
+	TaxEngineLegacy TaxEngine = "legacy"
+	// TaxEngineSuiteTax is NetSuite's SuiteTax, where the taxes of each line
+	// are in the transaction's tax details.
+	TaxEngineSuiteTax TaxEngine = "suitetax"
+)
+
+// WithTaxEngine sets how the account calculates tax, instead of detecting
+// it from the transaction.
+func WithTaxEngine(e TaxEngine) Option {
+	return func(o *options) {
+		o.taxEngine = e
+	}
 }
 
 // WithPresets sets the presets to use, in order, instead of the defaults:

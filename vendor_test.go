@@ -55,8 +55,15 @@ func TestNewVendor(t *testing.T) {
 		"addressee":"Orange Espagne, S.A.","addr1":"Paseo del Club Deportivo 1","addr2":"Parque Empresarial La Finca, Edificio 8",
 		"city":"Pozuelo de Alarcón","state":"Madrid","zip":"28223","country":{"id":"ES"}}}]}`, string(data))
 
+	assert.Equal(t, map[string]string{"id": "3"}, b["subsidiary"])
+
 	_, err = netsuite.ExportVendor(&org.Party{}, &netsuite.VendorOptions{Subsidiary: "3"})
 	assert.ErrorContains(t, err, "must have a name")
+
+	// Accounts without OneWorld have no subsidiaries.
+	out, err = netsuite.ExportVendor(orange(), nil)
+	require.NoError(t, err)
+	assert.NotContains(t, out.Body, "subsidiary")
 }
 
 func TestCompareVendor(t *testing.T) {
