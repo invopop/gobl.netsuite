@@ -165,13 +165,13 @@ func (r *Result) newLine(path string, it *TransactionItem, amount num.Amount, co
 			return nil, fmt.Errorf("rate: %w", err)
 		}
 		line.Item.Price = &price
-		// NetSuite rounds each line's amount itself, from a rate it may keep
-		// with more decimals than it gives, or the amount may be typed in.
-		// When quantity × rate doesn't come to the amount, the line is
-		// priced at its amount for its quantity, so it adds up as in
+		// NetSuite rounds each line's amount itself, from a rate or quantity
+		// it may keep with more decimals than it gives, or the amount may be
+		// typed in. When quantity × rate doesn't come to the amount, the
+		// line is priced at its amount for its quantity, so it adds up as in
 		// NetSuite.
 		if line.Quantity.IsPositive() && !lineAmountMatches(line.Quantity, price, amount) {
-			p, per := amount, line.Quantity
+			p, per := perQuantityPrice(amount, line.Quantity), line.Quantity
 			line.Item.Price, line.Item.Per = &p, &per
 		}
 	}
@@ -184,6 +184,14 @@ func (r *Result) newLine(path string, it *TransactionItem, amount num.Amount, co
 		line.Taxes = tax.Set{combo}
 	}
 	return line, nil
+}
+
+// perQuantityPrice is the price of a line's quantity that comes to its
+// amount. GOBL rounds price × quantity to the price's decimals before
+// dividing by per, so the price has the quantity's decimals too, as trailing
+// zeros, for a fractional quantity's product to be exact.
+func perQuantityPrice(amount, quantity num.Amount) num.Amount {
+	return amount.RescaleUp(amount.Exp() + quantity.Exp())
 }
 
 // lineAmountMatches is true when quantity × price, rounded as the amount
