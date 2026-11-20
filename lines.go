@@ -165,6 +165,15 @@ func (r *Result) newLine(path string, it *TransactionItem, amount num.Amount, co
 			return nil, fmt.Errorf("rate: %w", err)
 		}
 		line.Item.Price = &price
+		// NetSuite rounds each line's amount itself, from a rate it may keep
+		// with more decimals than it gives, or the amount may be typed in.
+		// When quantity × rate doesn't come to the amount, the line is
+		// priced at its amount for its quantity, so it adds up as in
+		// NetSuite.
+		if line.Quantity.IsPositive() && !lineAmountMatches(line.Quantity, price, amount) {
+			p, per := amount, line.Quantity
+			line.Item.Price, line.Item.Per = &p, &per
+		}
 	}
 
 	combo, err := r.newTaxCombo(path, it, country)
@@ -175,6 +184,13 @@ func (r *Result) newLine(path string, it *TransactionItem, amount num.Amount, co
 		line.Taxes = tax.Set{combo}
 	}
 	return line, nil
+}
+
+// lineAmountMatches is true when quantity × price, rounded as the amount
+// is, comes to the amount.
+func lineAmountMatches(quantity, price, amount num.Amount) bool {
+	sum := price.RescaleUp(price.Exp() + quantity.Exp()).Multiply(quantity)
+	return sum.Rescale(amount.Exp()).Equals(amount)
 }
 
 // addDiscount converts a discount line. NetSuite applies a discount line to
