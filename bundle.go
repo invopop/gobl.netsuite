@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"sync"
 
 	"github.com/invopop/gobl.netsuite/client"
 	"github.com/invopop/gobl/l10n"
 	"github.com/invopop/gobl/org"
+	"golang.org/x/sync/errgroup"
 )
 
 // Record types of the transactions supported by the conversion.
@@ -56,6 +58,11 @@ func FetchCreditMemo(ctx context.Context, nc *client.Client, id string) (*Bundle
 	return fetchTransaction(ctx, nc, RecordTypeCreditMemo, id)
 }
 
+// fetchConcurrency is how many requests a transaction's related records are
+// fetched with at once. NetSuite limits concurrent requests per account,
+// shared with the account's other integrations, so it's kept low.
+const fetchConcurrency = 3
+
 func fetchTransaction(ctx context.Context, nc *client.Client, recordType, id string) (*Bundle, error) {
 	b := &Bundle{
 		Currencies: make(map[string]json.RawMessage),
@@ -69,65 +76,92 @@ func fetchTransaction(ctx context.Context, nc *client.Client, recordType, id str
 		return nil, fmt.Errorf("parsing %s %s: %w", recordType, id, err)
 	}
 
-	if tx.Entity != nil {
-		if err := nc.GetRecord(ctx, "customer", tx.Entity.ID, true, &b.Customer); err != nil {
-			return nil, fmt.Errorf("fetching customer %s: %w", tx.Entity.ID, err)
-		}
-	}
+	// The other records only depend on the transaction, so they're fetched
+	// at the same time. Each task writes its own field of the bundle, and
+	// the shared indexes are guarded by f.
+	f := &fetcher{nc: nc}
+	g, gctx := errgroup.WithContext(ctx)
+	g.SetLimit(fetchConcurrency)
 
-	var sub *Subsidiary
-	if tx.Subsidiary != nil {
-		if err := nc.GetRecord(ctx, "subsidiary", tx.Subsidiary.ID, true, &b.Subsidiary); err != nil {
-			return nil, fmt.Errorf("fetching subsidiary %s: %w", tx.Subsidiary.ID, err)
-		}
-		sub = new(Subsidiary)
-		if err := json.Unmarshal(b.Subsidiary, sub); err != nil {
-			return nil, fmt.Errorf("parsing subsidiary %s: %w", tx.Subsidiary.ID, err)
-		}
+	if tx.Entity != nil {
+		g.Go(func() error {
+			if err := nc.GetRecord(gctx, "customer", tx.Entity.ID, true, &b.Customer); err != nil {
+				return fmt.Errorf("fetching customer %s: %w", tx.Entity.ID, err)
+			}
+			return nil
+		})
 	}
 
 	// Both the transaction currency and the subsidiary's base currency are
-	// needed to describe exchange rates.
-	currencies := []*Ref{tx.Currency}
-	if sub != nil {
-		currencies = append(currencies, sub.Currency)
-	}
-	for _, ref := range currencies {
-		if err := fetchInto(ctx, nc, "currency", ref, b.Currencies); err != nil {
-			return nil, err
-		}
+	// needed to describe exchange rates. The base currency is only known
+	// once the subsidiary is loaded, so it's fetched in the same task.
+	g.Go(func() error {
+		return f.fetchInto(gctx, "currency", tx.Currency, b.Currencies)
+	})
+	if tx.Subsidiary != nil {
+		g.Go(func() error {
+			if err := nc.GetRecord(gctx, "subsidiary", tx.Subsidiary.ID, true, &b.Subsidiary); err != nil {
+				return fmt.Errorf("fetching subsidiary %s: %w", tx.Subsidiary.ID, err)
+			}
+			sub := new(Subsidiary)
+			if err := json.Unmarshal(b.Subsidiary, sub); err != nil {
+				return fmt.Errorf("parsing subsidiary %s: %w", tx.Subsidiary.ID, err)
+			}
+			return f.fetchInto(gctx, "currency", sub.Currency, b.Currencies)
+		})
 	}
 
-	if tx.Item != nil {
-		for _, it := range tx.Item.Items {
-			// TODO: accounts may also use tax groups (record type "taxgroup")
-			// that combine several tax codes, which are not supported yet.
-			if err := fetchInto(ctx, nc, "salestaxitem", it.TaxCode, b.TaxCodes); err != nil {
-				return nil, err
-			}
-		}
-	}
-	// With SuiteTax, the tax codes are in the tax details instead.
-	if tx.TaxDetails != nil {
-		for _, d := range tx.TaxDetails.Items {
-			if err := fetchInto(ctx, nc, "salestaxitem", d.TaxCode, b.TaxCodes); err != nil {
-				return nil, err
-			}
-		}
+	// TODO: accounts may also use tax groups (record type "taxgroup") that
+	// combine several tax codes, which are not supported yet.
+	for _, ref := range taxCodeRefs(tx) {
+		g.Go(func() error {
+			return f.fetchInto(gctx, "salestaxitem", ref, b.TaxCodes)
+		})
 	}
 
-	if err := fetchPrecedingInvoices(ctx, nc, tx, b); err != nil {
+	g.Go(func() error {
+		return fetchPrecedingInvoices(gctx, f, tx, b)
+	})
+
+	if err := g.Wait(); err != nil {
 		return nil, err
 	}
-
 	return b, nil
+}
+
+// taxCodeRefs lists the tax codes of a transaction's lines once each, from
+// the lines with legacy tax, and from the tax details with SuiteTax.
+func taxCodeRefs(tx *Transaction) []*Ref {
+	var refs []*Ref
+	add := func(ref *Ref) {
+		if ref == nil || ref.ID == "" {
+			return
+		}
+		for _, r := range refs {
+			if r.ID == ref.ID {
+				return
+			}
+		}
+		refs = append(refs, ref)
+	}
+	if tx.Item != nil {
+		for _, it := range tx.Item.Items {
+			add(it.TaxCode)
+		}
+	}
+	if tx.TaxDetails != nil {
+		for _, d := range tx.TaxDetails.Items {
+			add(d.TaxCode)
+		}
+	}
+	return refs
 }
 
 // fetchPrecedingInvoices loads the invoices a transaction was created from
 // or applied to. As the created from reference does not say what type of
 // transaction it refers to, the types are looked up first so that only
 // invoices are loaded, and not for example a return authorization.
-func fetchPrecedingInvoices(ctx context.Context, nc *client.Client, tx *Transaction, b *Bundle) error {
+func fetchPrecedingInvoices(ctx context.Context, f *fetcher, tx *Transaction, b *Bundle) error {
 	ids := precedingIDs(tx)
 	if len(ids) == 0 {
 		return nil
@@ -138,7 +172,7 @@ func fetchPrecedingInvoices(ctx context.Context, nc *client.Client, tx *Transact
 			return fmt.Errorf("invalid transaction ID %q", id)
 		}
 	}
-	res, err := nc.Query(ctx, fmt.Sprintf(
+	res, err := f.nc.Query(ctx, fmt.Sprintf(
 		"SELECT id, type FROM transaction WHERE id IN (%s)", strings.Join(ids, ", ")), 0, 0)
 	if err != nil {
 		return fmt.Errorf("finding preceding transaction types: %w", err)
@@ -155,7 +189,7 @@ func fetchPrecedingInvoices(ctx context.Context, nc *client.Client, tx *Transact
 		if !strings.EqualFold(row.Type, transactionTypeInvoice) {
 			continue
 		}
-		if err := fetchInto(ctx, nc, RecordTypeInvoice, &Ref{ID: row.ID}, b.Related); err != nil {
+		if err := f.fetchInto(ctx, RecordTypeInvoice, &Ref{ID: row.ID}, b.Related); err != nil {
 			return err
 		}
 	}
@@ -184,20 +218,33 @@ func precedingIDs(tx *Transaction) []string {
 	return ids
 }
 
+// fetcher loads records into a bundle's indexes, from several goroutines.
+type fetcher struct {
+	nc *client.Client
+	mu sync.Mutex
+}
+
 // fetchInto loads the referenced record into the index, unless the reference
-// is empty or the record was already loaded.
-func fetchInto(ctx context.Context, nc *client.Client, recordType string, ref *Ref, index map[string]json.RawMessage) error {
+// is empty or the record was already loaded. Two tasks may ask for the same
+// record at once, such as a currency that's both the transaction's and the
+// subsidiary's; both fetch it, and the result is the same.
+func (f *fetcher) fetchInto(ctx context.Context, recordType string, ref *Ref, index map[string]json.RawMessage) error {
 	if ref == nil || ref.ID == "" {
 		return nil
 	}
-	if _, ok := index[ref.ID]; ok {
+	f.mu.Lock()
+	_, ok := index[ref.ID]
+	f.mu.Unlock()
+	if ok {
 		return nil
 	}
 	var data json.RawMessage
-	if err := nc.GetRecord(ctx, recordType, ref.ID, false, &data); err != nil {
+	if err := f.nc.GetRecord(ctx, recordType, ref.ID, false, &data); err != nil {
 		return fmt.Errorf("fetching %s %s: %w", recordType, ref.ID, err)
 	}
+	f.mu.Lock()
 	index[ref.ID] = data
+	f.mu.Unlock()
 	return nil
 }
 
