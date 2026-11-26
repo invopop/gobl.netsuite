@@ -27,7 +27,8 @@ const maxMemo = 999
 // the caller finds in the account.
 type PurchaseOptions struct {
 	// Subsidiary is the internal ID of the subsidiary buying, the GOBL
-	// customer.
+	// customer, required in OneWorld accounts. Accounts without OneWorld
+	// have none.
 	Subsidiary string
 	// Country is where the subsidiary accounts for tax, used to choose tax
 	// codes.
@@ -89,8 +90,8 @@ func ExportPurchase(inv *bill.Invoice, o *PurchaseOptions) (*Record, error) {
 	if inv == nil || inv.Totals == nil {
 		return nil, fmt.Errorf("the invoice must be calculated")
 	}
-	if o == nil || o.Subsidiary == "" || o.Vendor == "" || o.Account == "" || o.TaxCodes == nil {
-		return nil, fmt.Errorf("the subsidiary, vendor, expense account and tax codes are required")
+	if o == nil || o.Vendor == "" || o.Account == "" || o.TaxCodes == nil {
+		return nil, fmt.Errorf("the vendor, expense account and tax codes are required")
 	}
 	if inv.Totals.RetainedTax != nil && !inv.Totals.RetainedTax.IsZero() {
 		return nil, fmt.Errorf("invoices with retained taxes, such as withholding, are not supported yet")
@@ -209,10 +210,12 @@ func expenseItems(lines []*expenseLine, o *PurchaseOptions, exp uint32) []map[st
 // purchaseHeader prepares the record's body fields, other than its lines.
 func purchaseHeader(inv *bill.Invoice, o *PurchaseOptions, recordType string) map[string]any {
 	body := map[string]any{
-		"entity":     ref(o.Vendor),
-		"subsidiary": ref(o.Subsidiary),
-		"tranId":     documentNumber(inv.Series, inv.Code),
-		"tranDate":   inv.IssueDate.String(),
+		"entity":   ref(o.Vendor),
+		"tranId":   documentNumber(inv.Series, inv.Code),
+		"tranDate": inv.IssueDate.String(),
+	}
+	if o.Subsidiary != "" {
+		body["subsidiary"] = ref(o.Subsidiary)
 	}
 	if o.ExternalID != "" {
 		body["externalId"] = o.ExternalID

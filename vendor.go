@@ -13,7 +13,8 @@ const RecordTypeVendor = "vendor"
 
 // VendorOptions provides the NetSuite records a new vendor refers to.
 type VendorOptions struct {
-	// Subsidiary is the internal ID of the subsidiary the vendor supplies.
+	// Subsidiary is the internal ID of the subsidiary the vendor supplies,
+	// required in OneWorld accounts. Accounts without OneWorld have none.
 	Subsidiary string
 	// Currency is the internal ID of the vendor's currency.
 	Currency string
@@ -34,8 +35,8 @@ func ExportVendor(p *org.Party, o *VendorOptions) (*Record, error) {
 	if p == nil || p.Name == "" {
 		return nil, fmt.Errorf("the party must have a name")
 	}
-	if o == nil || o.Subsidiary == "" {
-		return nil, fmt.Errorf("the subsidiary is required")
+	if o == nil {
+		o = new(VendorOptions)
 	}
 	out := &Record{RecordType: RecordTypeVendor}
 	d := vendorDetailsOf(p)
@@ -43,7 +44,9 @@ func ExportVendor(p *org.Party, o *VendorOptions) (*Record, error) {
 		"isPerson":    false,
 		"companyName": truncate(d.name, 83),
 		"legalName":   truncate(d.name, 83),
-		"subsidiary":  ref(o.Subsidiary),
+	}
+	if o.Subsidiary != "" {
+		body["subsidiary"] = ref(o.Subsidiary)
 	}
 	if d.taxID != "" {
 		body["vatRegNumber"] = d.taxID

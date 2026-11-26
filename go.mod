@@ -4,7 +4,8 @@ go 1.25.5
 
 require (
 	github.com/dghubble/oauth1 v0.7.3
-	github.com/invopop/gobl v0.507.0
+	github.com/invopop/gobl v0.512.0
+	github.com/itchyny/gojq v0.12.18
 	github.com/joho/godotenv v1.5.1
 	github.com/spf13/cobra v1.9.1
 	github.com/stretchr/testify v1.11.1
@@ -18,12 +19,11 @@ require (
 	github.com/buger/jsonparser v1.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/expr-lang/expr v1.17.8 // indirect
-	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.6 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/invopop/jsonschema v0.14.0 // indirect
 	github.com/invopop/yaml v0.3.1 // indirect
-	github.com/itchyny/gojq v0.12.18 // indirect
 	github.com/itchyny/timefmt-go v0.1.7 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/magefile/mage v1.15.0 // indirect
