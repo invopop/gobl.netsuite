@@ -1,0 +1,103 @@
+package main
+
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"os"
+
+	"github.com/invopop/gobl"
+	netsuite "github.com/invopop/gobl.netsuite"
+	"github.com/spf13/cobra"
+)
+
+type importOpts struct {
+	*rootOpts
+	mappingFlags
+	outFile string
+}
+
+func importCmd(o *rootOpts) *importOpts {
+	return &importOpts{rootOpts: o}
+}
+
+func (c *importOpts) cmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "import [infile]",
+		Aliases: []string{"convert"},
+		Short:   "Import a NetSuite invoice or credit memo bundle into a GOBL envelope",
+		Long: "Import a NetSuite bundle, as produced by `probe invoice` or `probe creditmemo`, into a GOBL\n" +
+			"envelope. " +
+			"Reads from stdin if no file is given.",
+		Args: cobra.MaximumNArgs(1),
+		RunE: c.runE,
+	}
+	cmd.Flags().StringVarP(&c.outFile, "out", "o", "", "file to write to, instead of stdout")
+	c.add(cmd)
+	return cmd
+}
+
+func (c *importOpts) runE(cmd *cobra.Command, args []string) error {
+	in := cmd.InOrStdin()
+	if len(args) > 0 && args[0] != "-" {
+		f, err := os.Open(args[0])
+		if err != nil {
+			return err
+		}
+		defer f.Close() //nolint:errcheck
+		in = f
+	}
+	data, err := io.ReadAll(in)
+	if err != nil {
+		return fmt.Errorf("reading input: %w", err)
+	}
+	b := new(netsuite.Bundle)
+	if err := json.Unmarshal(data, b); err != nil {
+		return fmt.Errorf("parsing bundle: %w", err)
+	}
+	opts, err := c.options()
+	if err != nil {
+		return err
+	}
+	return importBundle(cmd, b, c.outFile, opts...)
+}
+
+// importBundle imports, calculates and outputs the GOBL envelope. Notices
+// about unmapped data are printed to stderr, and an error is returned after
+// the output if the invoice is invalid or its totals differ from NetSuite's.
+func importBundle(cmd *cobra.Command, b *netsuite.Bundle, outFile string, opts ...netsuite.Option) error {
+	res, err := netsuite.Import(b, opts...)
+	if err != nil {
+		return err
+	}
+	env, err := gobl.Envelop(res.Invoice)
+	if err != nil {
+		return err
+	}
+	if err := env.Calculate(); err != nil {
+		return fmt.Errorf("calculating: %w", err)
+	}
+	data, err := json.Marshal(env)
+	if err != nil {
+		return err
+	}
+	if err := output(cmd, outFile, data); err != nil {
+		return err
+	}
+
+	for _, n := range res.Unmapped {
+		cmd.PrintErrf("unmapped: %s: %s\n", n.Path, n.Message)
+	}
+	var errs []error
+	if err := env.Validate(); err != nil {
+		errs = append(errs, fmt.Errorf("validation: %w", err))
+	}
+	if err := res.CheckTotals(); err != nil {
+		errs = append(errs, err)
+	}
+	for _, n := range res.Warnings {
+		cmd.PrintErrf("warning: %s: %s\n", n.Path, n.Message)
+	}
+	return errors.Join(errs...)
+}

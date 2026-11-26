@@ -1,0 +1,17 @@
+{
+  "$schema": "https://gobl.org/draft-0/bill/invoice",
+  "series": "F2026",
+  "code": "1043",
+  "issue_date": "2026-10-02",
+  "currency": "EUR",
+  "supplier": {"name": "Orange Espagne, S.A.", "tax_id": {"country": "ES", "code": "A82009812"}},
+  "customer": {"name": "Invopop SL", "tax_id": {"country": "ES", "code": "B85905495"}},
+  "notes": [{"key": "general", "text": "Mobile and fibre, September 2026"}],
+  "lines": [
+    {"quantity": "3", "item": {"name": "Mobile line", "price": "33.33"}, "taxes": [{"cat": "VAT", "rate": "general"}]},
+    {"quantity": "1", "item": {"name": "SIM replacement", "price": "0.35"}, "taxes": [{"cat": "VAT", "rate": "general"}]},
+    {"quantity": "1", "item": {"name": "Fibre 1Gb", "price": "59.99"}, "taxes": [{"cat": "VAT", "rate": "general"}]}
+  ],
+  "discounts": [{"reason": "Loyalty discount", "amount": "5.00", "taxes": [{"cat": "VAT", "rate": "general"}]}],
+  "payment": {"terms": {"due_dates": [{"date": "2026-11-01", "percent": "100%"}]}}
+}

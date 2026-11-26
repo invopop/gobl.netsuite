@@ -1,0 +1,536 @@
+{
+  "transaction": {
+    "amountPaid": 0,
+    "amountRemaining": 1049.4,
+    "amountRemainingTotalBox": 1049.4,
+    "billAddress": "Banco Santander, S.A.\nPaseo de Pereda 9-12\nSantander  39004\nSpain",
+    "billAddressList": {
+      "id": "2",
+      "refName": "Paseo de Pereda 9-12"
+    },
+    "billingAddress": {
+      "addr1": "Paseo de Pereda 9-12",
+      "addrText": "Banco Santander, S.A.\nPaseo de Pereda 9-12\nSantander  39004\nSpain",
+      "addressee": "Banco Santander, S.A.",
+      "city": "Santander",
+      "country": {
+        "id": "ES",
+        "refName": "Spain"
+      },
+      "override": false,
+      "zip": "39004"
+    },
+    "billingAddress_text": "Banco Santander, S.A.\nPaseo de Pereda 9-12\nSantander  39004\nSpain",
+    "canHaveStackable": false,
+    "createdDate": "2026-09-24T21:29:00Z",
+    "currency": {
+      "id": "1",
+      "refName": "ESP"
+    },
+    "customForm": {
+      "id": "91",
+      "refName": "Standard Service Invoice"
+    },
+    "discountItem": {
+      "id": "17",
+      "refName": "DISC-001 Discount"
+    },
+    "discountRate": -100,
+    "discountTotal": -100,
+    "dueDate": "2026-09-24",
+    "entity": {
+      "id": "6",
+      "refName": "2 Banco Santander, S.A."
+    },
+    "exchangeRate": 1,
+    "expCost": {
+      "items": [],
+      "totalResults": 0
+    },
+    "expCostDiscPrint": false,
+    "id": "103",
+    "item": {
+      "items": [
+        {
+          "account": {
+            "id": "134",
+            "refName": "134"
+          },
+          "amount": 600,
+          "excludeFromRateRequest": false,
+          "grossAmt": 726,
+          "item": {
+            "id": "14",
+            "refName": "SVC-001 Consulting"
+          },
+          "itemSubtype": {
+            "id": "Sale",
+            "refName": "Sale"
+          },
+          "itemType": {
+            "id": "Service",
+            "refName": "Service"
+          },
+          "line": 1,
+          "lineUniqueKey": "108",
+          "marginal": false,
+          "price": {
+            "id": "1",
+            "refName": "Base Price"
+          },
+          "printItems": false,
+          "quantity": 6,
+          "rate": 100,
+          "tax1Amt": 126,
+          "taxCode": {
+            "id": "6",
+            "refName": "VAT:S-ES"
+          },
+          "taxRate1": 21
+        },
+        {
+          "account": {
+            "id": "135",
+            "refName": "135"
+          },
+          "amount": 400,
+          "excludeFromRateRequest": false,
+          "grossAmt": 440,
+          "item": {
+            "id": "15",
+            "refName": "SVC-002 Support"
+          },
+          "itemSubtype": {
+            "id": "Sale",
+            "refName": "Sale"
+          },
+          "itemType": {
+            "id": "Service",
+            "refName": "Service"
+          },
+          "line": 2,
+          "lineUniqueKey": "109",
+          "marginal": false,
+          "price": {
+            "id": "1",
+            "refName": "Base Price"
+          },
+          "printItems": false,
+          "quantity": 4,
+          "rate": 100,
+          "tax1Amt": 40,
+          "taxCode": {
+            "id": "7",
+            "refName": "VAT:R-ES"
+          },
+          "taxRate1": 10
+        }
+      ],
+      "totalResults": 2
+    },
+    "itemCost": {
+      "items": [],
+      "totalResults": 0
+    },
+    "itemCostDiscPrint": false,
+    "lastModifiedDate": "2026-09-24T21:29:00Z",
+    "memo": "Test: header discount across rates",
+    "originator": "restWebServices",
+    "postingPeriod": {
+      "id": "30",
+      "refName": "Sep 2026"
+    },
+    "prevDate": "2026-09-24",
+    "salesEffectiveDate": "2026-09-24",
+    "shipAddress": "Banco Santander, S.A.\nPaseo de Pereda 9-12\nSantander  39004\nSpain",
+    "shipAddressList": {
+      "id": "2",
+      "refName": "Paseo de Pereda 9-12"
+    },
+    "shipDate": "2026-09-24",
+    "shipIsResidential": false,
+    "shipOverride": false,
+    "shippingAddress": {
+      "addr1": "Paseo de Pereda 9-12",
+      "addrText": "Banco Santander, S.A.\nPaseo de Pereda 9-12\nSantander  39004\nSpain",
+      "addressee": "Banco Santander, S.A.",
+      "city": "Santander",
+      "country": {
+        "id": "ES",
+        "refName": "Spain"
+      },
+      "override": false,
+      "zip": "39004"
+    },
+    "shippingAddress_text": "Banco Santander, S.A.\nPaseo de Pereda 9-12\nSantander  39004\nSpain",
+    "source": {
+      "id": "REST Web Services",
+      "refName": "REST Web Services"
+    },
+    "sourceSystem": {
+      "id": "restWebServices",
+      "refName": "REST Web Services"
+    },
+    "status": {
+      "id": "Open",
+      "refName": "Open"
+    },
+    "subsidiary": {
+      "id": "3",
+      "refName": "Invopop SL"
+    },
+    "subtotal": 1000,
+    "taxTotal": 149.4,
+    "time": {
+      "items": [],
+      "totalResults": 0
+    },
+    "timeDiscPrint": false,
+    "toBeEmailed": false,
+    "toBeFaxed": false,
+    "toBePrinted": false,
+    "total": 1049.4,
+    "tranDate": "2026-09-24",
+    "tranId": "11",
+    "transactionNumber": "CUSTINVC11",
+    "type": {
+      "id": "custinvc",
+      "refName": "custinvc"
+    },
+    "vatRegNum": "ESA39000013"
+  },
+  "currencies": {
+    "1": {
+      "currencyPrecision": 2,
+      "displaySymbol": "€",
+      "exchangeRate": 1,
+      "formatSample": "€1.234,56",
+      "id": "1",
+      "isBaseCurrency": true,
+      "isInactive": false,
+      "lastModifiedDate": "2026-09-23T13:08:00Z",
+      "locale": {
+        "id": "es_ES_EURO",
+        "refName": "Spain (Spanish EURO)"
+      },
+      "name": "ESP",
+      "overrideCurrencyFormat": false,
+      "symbol": "EUR",
+      "symbolPlacement": {
+        "id": "1",
+        "refName": "Before Number"
+      }
+    }
+  },
+  "customer": {
+    "accessRole": {
+      "id": "14",
+      "refName": "Customer Centre"
+    },
+    "addressBook": {
+      "items": [
+        {
+          "addressBookAddress": {
+            "addr1": "Paseo de Pereda 9-12",
+            "addrText": "Banco Santander, S.A.\nPaseo de Pereda 9-12\nSantander  39004\nSpain",
+            "addressee": "Banco Santander, S.A.",
+            "city": "Santander",
+            "country": {
+              "id": "ES",
+              "refName": "Spain"
+            },
+            "override": false,
+            "zip": "39004"
+          },
+          "addressBookAddress_text": "Banco Santander, S.A.\nPaseo de Pereda 9-12\nSantander  39004\nSpain",
+          "addressId": "2",
+          "defaultBilling": true,
+          "defaultShipping": true,
+          "id": 2,
+          "internalId": 2,
+          "isResidential": false,
+          "label": "Paseo de Pereda 9-12"
+        }
+      ],
+      "totalResults": 1
+    },
+    "aging": 4884.03,
+    "aging1": 0,
+    "aging2": 0,
+    "aging3": 0,
+    "aging4": 0,
+    "alcoholRecipientType": {
+      "id": "CONSUMER",
+      "refName": "Consumer"
+    },
+    "balance": 4884.03,
+    "companyName": "Banco Santander, S.A.",
+    "contactList": {
+      "count": 0,
+      "hasMore": false,
+      "items": [],
+      "offset": 0,
+      "totalResults": 0
+    },
+    "contactRoles": {
+      "items": [],
+      "totalResults": 0
+    },
+    "creditHoldOverride": {
+      "id": "AUTO",
+      "refName": "Auto"
+    },
+    "currency": {
+      "id": "1",
+      "refName": "ESP"
+    },
+    "currencyList": {
+      "items": [
+        {
+          "balance": 4884.03,
+          "currency": {
+            "id": "1",
+            "refName": "ESP"
+          },
+          "depositBalance": 0,
+          "displaySymbol": "€",
+          "overdueBalance": 0,
+          "overrideCurrencyFormat": false,
+          "symbolPlacement": {
+            "id": "1",
+            "refName": "Before Number"
+          },
+          "unbilledOrders": 0
+        }
+      ],
+      "totalResults": 1
+    },
+    "customForm": {
+      "id": "-2",
+      "refName": "Standard Customer Form"
+    },
+    "dateCreated": "2026-09-23T09:21:00Z",
+    "daysOverdue": 0,
+    "defaultAddress": "Banco Santander, S.A.\nPaseo de Pereda 9-12\nSantander  39004\nSpain",
+    "depositBalance": 0,
+    "emailPreference": {
+      "id": "DEFAULT",
+      "refName": "Default"
+    },
+    "emailTransactions": false,
+    "entityId": "2 Banco Santander, S.A.",
+    "entityStatus": {
+      "id": "13",
+      "refName": "CUSTOMER-Closed Won"
+    },
+    "faxTransactions": false,
+    "giveAccess": false,
+    "groupPricing": {
+      "items": [],
+      "totalResults": 0
+    },
+    "id": "6",
+    "isBudgetApproved": false,
+    "isInactive": false,
+    "isPerson": false,
+    "itemPricing": {
+      "items": [],
+      "totalResults": 0
+    },
+    "lastModifiedDate": "2026-09-23T09:21:00Z",
+    "monthlyClosing": {
+      "id": "31",
+      "refName": "End of the Month"
+    },
+    "overdueBalance": 0,
+    "printTransactions": false,
+    "receivablesAccount": {
+      "id": "-10",
+      "refName": "Use System Preference"
+    },
+    "sendEmail": false,
+    "shipComplete": false,
+    "shippingCarrier": {
+      "id": "nonups",
+      "refName": "FedEx/USPS/More"
+    },
+    "subsidiary": {
+      "id": "3",
+      "refName": "Invopop SL"
+    },
+    "taxExempt": true,
+    "taxable": false,
+    "unbilledOrders": 0,
+    "vatRegNumber": "ESA39000013"
+  },
+  "subsidiary": {
+    "checklayout": {
+      "id": "50",
+      "refName": "Standard Check Layout"
+    },
+    "country": {
+      "id": "ES",
+      "refName": "Spain"
+    },
+    "currency": {
+      "id": "1",
+      "refName": "ESP"
+    },
+    "edition": {
+      "id": "XX",
+      "refName": "XX"
+    },
+    "federalIdNumber": "B85905495",
+    "fiscalCalendar": {
+      "id": "1",
+      "refName": "Standard Fiscal Calendar"
+    },
+    "id": "3",
+    "isElimination": false,
+    "isInactive": false,
+    "lastModifiedDate": "2026-09-23T12:59:00Z",
+    "legalName": "Invopop SL",
+    "logo": {
+      "id": "1",
+      "refName": "InvopopLogo.jpeg"
+    },
+    "mainAddress": {
+      "addr1": "Calle Pradillo, 42",
+      "addrText": "Invopop SL\r\nCalle Pradillo, 42\r\nMadrid  28002\r\nSpain",
+      "addressee": "Invopop SL",
+      "city": "Madrid",
+      "country": {
+        "id": "ES",
+        "refName": "Spain"
+      },
+      "override": false,
+      "zip": "28002"
+    },
+    "name": "Invopop SL",
+    "nexus": {
+      "items": [
+        {
+          "country": "ES",
+          "nexusId": {
+            "id": "1",
+            "refName": "Spain "
+          }
+        }
+      ],
+      "totalResults": 1
+    },
+    "pageLogo": {
+      "id": "1",
+      "refName": "InvopopLogo.jpeg"
+    },
+    "parent": {
+      "id": "1",
+      "refName": "Parent Company"
+    },
+    "returnAddress": {
+      "addrText": "Spain",
+      "country": {
+        "id": "ES",
+        "refName": "Spain"
+      },
+      "override": false
+    },
+    "shippingAddress": {
+      "addrText": "Spain",
+      "country": {
+        "id": "ES",
+        "refName": "Spain"
+      },
+      "override": false
+    },
+    "showSubsidiaryName": false,
+    "taxFiscalCalendar": {
+      "id": "1",
+      "refName": "Standard Fiscal Calendar"
+    }
+  },
+  "taxCodes": {
+    "6": {
+      "available": {
+        "id": "BOTH",
+        "refName": "Both"
+      },
+      "description": "Standard Domestic rate",
+      "ecCode": false,
+      "excludeFromTaxReports": false,
+      "exempt": false,
+      "export": false,
+      "id": "6",
+      "includeChildren": false,
+      "isDefault": false,
+      "isInactive": false,
+      "itemId": "S-ES",
+      "itemType": "TaxItem",
+      "nexusCountry": {
+        "id": "ES",
+        "refName": "ES"
+      },
+      "purchaseAccount": {
+        "id": "126",
+        "refName": "126"
+      },
+      "rate": 21,
+      "reverseCharge": false,
+      "saleAccount": {
+        "id": "125",
+        "refName": "125"
+      },
+      "service": false,
+      "subsidiary": {},
+      "taxAgency": {
+        "id": "2",
+        "refName": "Tax Agency ES"
+      },
+      "taxType": {
+        "id": "1",
+        "refName": "VAT"
+      }
+    },
+    "7": {
+      "available": {
+        "id": "BOTH",
+        "refName": "Both"
+      },
+      "description": "Reduced rate",
+      "ecCode": false,
+      "excludeFromTaxReports": false,
+      "exempt": false,
+      "export": false,
+      "id": "7",
+      "includeChildren": false,
+      "isDefault": false,
+      "isInactive": false,
+      "itemId": "R-ES",
+      "itemType": "TaxItem",
+      "nexusCountry": {
+        "id": "ES",
+        "refName": "ES"
+      },
+      "purchaseAccount": {
+        "id": "126",
+        "refName": "126"
+      },
+      "rate": 10,
+      "reverseCharge": false,
+      "saleAccount": {
+        "id": "125",
+        "refName": "125"
+      },
+      "service": false,
+      "subsidiary": {},
+      "taxAgency": {
+        "id": "2",
+        "refName": "Tax Agency ES"
+      },
+      "taxType": {
+        "id": "1",
+        "refName": "VAT"
+      }
+    }
+  }
+}

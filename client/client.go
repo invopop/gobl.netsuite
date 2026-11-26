@@ -1,0 +1,279 @@
+// Package client provides a minimal client for the NetSuite REST web services
+// (SuiteTalk REST), covering the record and SuiteQL query APIs.
+package client
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"strings"
+)
+
+const (
+	// defaultHostPattern is the REST web services host for an account, where
+	// the placeholder is the account ID in its URL form (lowercase, hyphens).
+	defaultHostPattern = "https://%s.suitetalk.api.netsuite.com"
+
+	recordPath = "/services/rest/record/v1"
+	queryPath  = "/services/rest/query/v1/suiteql"
+)
+
+// Client makes authenticated requests to the NetSuite REST web services
+// of a single account.
+type Client struct {
+	accountID string
+	baseURL   string
+	http      *http.Client
+}
+
+// Option configures a Client.
+type Option func(*Client)
+
+// WithBaseURL overrides the base URL derived from the account ID. Mainly
+// useful for tests.
+func WithBaseURL(u string) Option {
+	return func(c *Client) {
+		c.baseURL = strings.TrimSuffix(u, "/")
+	}
+}
+
+// New creates a client for the given account ID using the provided
+// authentication method.
+func New(accountID string, auth Auth, opts ...Option) (*Client, error) {
+	if accountID == "" {
+		return nil, fmt.Errorf("account ID is required")
+	}
+	if auth == nil {
+		return nil, fmt.Errorf("auth is required")
+	}
+	c := &Client{
+		accountID: accountID,
+		baseURL:   fmt.Sprintf(defaultHostPattern, AccountHost(accountID)),
+	}
+	for _, opt := range opts {
+		opt(c)
+	}
+	c.http = auth.HTTPClient(context.Background(), accountID)
+	return c, nil
+}
+
+// AccountHost converts an account ID into the form used in NetSuite
+// hostnames, e.g. "1234567_SB1" becomes "1234567-sb1".
+func AccountHost(accountID string) string {
+	return strings.ToLower(strings.ReplaceAll(accountID, "_", "-"))
+}
+
+// AccountRealm converts an account ID into the form used as the OAuth
+// realm, e.g. "1234567-sb1" becomes "1234567_SB1".
+func AccountRealm(accountID string) string {
+	return strings.ToUpper(strings.ReplaceAll(accountID, "-", "_"))
+}
+
+// GetRecord fetches a single record by type and internal ID, decoding the
+// response into out. When expand is true, sublists and subrecords are
+// included in the response instead of links.
+func (c *Client) GetRecord(ctx context.Context, recordType, id string, expand bool, out any) error {
+	q := url.Values{}
+	if expand {
+		q.Set("expandSubResources", "true")
+	}
+	p := fmt.Sprintf("%s/%s/%s", recordPath, url.PathEscape(recordType), url.PathEscape(id))
+	return c.Get(ctx, p, q, out)
+}
+
+// CreateRecord creates a record of the given type from the body, which is
+// encoded as JSON, and returns the internal ID of the new record.
+func (c *Client) CreateRecord(ctx context.Context, recordType string, body any) (string, error) {
+	return c.post(ctx, fmt.Sprintf("%s/%s", recordPath, url.PathEscape(recordType)), body)
+}
+
+// post sends the body to a path that creates a record, returning its ID.
+func (c *Client) post(ctx context.Context, p string, body any) (string, error) {
+	data, err := json.Marshal(body)
+	if err != nil {
+		return "", err
+	}
+	req, err := c.newRequest(ctx, http.MethodPost, p, nil, bytes.NewReader(data))
+	if err != nil {
+		return "", err
+	}
+	resp, err := c.send(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close() //nolint:errcheck
+	// NetSuite responds with no content, and the location of the new record.
+	loc := resp.Header.Get("Location")
+	id := loc[strings.LastIndex(loc, "/")+1:]
+	if id == "" {
+		return "", fmt.Errorf("POST %s: no record location in response", p)
+	}
+	return id, nil
+}
+
+// UpdateRecord updates the fields of a record provided in the body. Sublists
+// named in replace, such as "item", are replaced entirely by those in the
+// body instead of being merged with the existing lines.
+func (c *Client) UpdateRecord(ctx context.Context, recordType, id string, body any, replace ...string) error {
+	data, err := json.Marshal(body)
+	if err != nil {
+		return err
+	}
+	q := url.Values{}
+	if len(replace) > 0 {
+		q.Set("replace", strings.Join(replace, ","))
+	}
+	p := fmt.Sprintf("%s/%s/%s", recordPath, url.PathEscape(recordType), url.PathEscape(id))
+	req, err := c.newRequest(ctx, http.MethodPatch, p, q, bytes.NewReader(data))
+	if err != nil {
+		return err
+	}
+	return c.do(req, nil)
+}
+
+// UpsertRecord creates or updates the record with the given external ID, so
+// repeating a request doesn't create duplicates.
+func (c *Client) UpsertRecord(ctx context.Context, recordType, externalID string, body any) error {
+	data, err := json.Marshal(body)
+	if err != nil {
+		return err
+	}
+	p := fmt.Sprintf("%s/%s/eid:%s", recordPath, url.PathEscape(recordType), url.PathEscape(externalID))
+	req, err := c.newRequest(ctx, http.MethodPut, p, nil, bytes.NewReader(data))
+	if err != nil {
+		return err
+	}
+	return c.do(req, nil)
+}
+
+// TransformRecord creates a new record of the target type from an existing
+// record, such as a credit memo from an invoice, returning its internal ID.
+// The body may override fields of the new record, and can be nil.
+func (c *Client) TransformRecord(ctx context.Context, recordType, id, targetType string, body any) (string, error) {
+	if body == nil {
+		body = struct{}{}
+	}
+	p := fmt.Sprintf("%s/%s/%s/!transform/%s", recordPath,
+		url.PathEscape(recordType), url.PathEscape(id), url.PathEscape(targetType))
+	return c.post(ctx, p, body)
+}
+
+// RecordSchema fetches the JSON Schema for a record type from the metadata
+// catalog, decoding it into out. The schema is specific to the account, so
+// includes any custom fields and reflects the features enabled.
+func (c *Client) RecordSchema(ctx context.Context, recordType string, out any) error {
+	p := fmt.Sprintf("%s/metadata-catalog/%s", recordPath, url.PathEscape(recordType))
+	req, err := c.newRequest(ctx, http.MethodGet, p, nil, nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Accept", "application/schema+json")
+	return c.do(req, out)
+}
+
+// QueryResult is a single page of results from a SuiteQL query.
+type QueryResult struct {
+	Count        int               `json:"count"`
+	HasMore      bool              `json:"hasMore"`
+	Offset       int               `json:"offset"`
+	TotalResults int               `json:"totalResults"`
+	Items        []json.RawMessage `json:"items"`
+}
+
+// Query runs a SuiteQL query and returns a single page of results. A limit
+// of zero uses the NetSuite default (1000).
+func (c *Client) Query(ctx context.Context, sql string, limit, offset int) (*QueryResult, error) {
+	q := url.Values{}
+	if limit > 0 {
+		q.Set("limit", fmt.Sprint(limit))
+	}
+	if offset > 0 {
+		q.Set("offset", fmt.Sprint(offset))
+	}
+	body, err := json.Marshal(map[string]string{"q": sql})
+	if err != nil {
+		return nil, err
+	}
+	req, err := c.newRequest(ctx, http.MethodPost, queryPath, q, bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Prefer", "transient")
+	res := new(QueryResult)
+	if err := c.do(req, res); err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+// Get performs a GET request against the given path, relative to the
+// account's base URL, and decodes the JSON response into out.
+func (c *Client) Get(ctx context.Context, path string, query url.Values, out any) error {
+	req, err := c.newRequest(ctx, http.MethodGet, path, query, nil)
+	if err != nil {
+		return err
+	}
+	return c.do(req, out)
+}
+
+func (c *Client) newRequest(ctx context.Context, method, path string, query url.Values, body io.Reader) (*http.Request, error) {
+	u := c.baseURL + path
+	if len(query) > 0 {
+		u += "?" + query.Encode()
+	}
+	req, err := http.NewRequestWithContext(ctx, method, u, body)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Accept", "application/json")
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+	return req, nil
+}
+
+// send performs the request, returning an error for error responses. The
+// caller must close the response body.
+func (c *Client) send(req *http.Request) (*http.Response, error) {
+	resp, err := c.http.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("%s %s: %w", req.Method, req.URL.Path, err)
+	}
+	if resp.StatusCode >= http.StatusBadRequest {
+		defer resp.Body.Close() //nolint:errcheck
+		data, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("reading response: %w", err)
+		}
+		return nil, newError(resp, data)
+	}
+	return resp, nil
+}
+
+func (c *Client) do(req *http.Request, out any) error {
+	resp, err := c.send(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close() //nolint:errcheck
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("reading response: %w", err)
+	}
+	if out == nil || len(data) == 0 {
+		return nil
+	}
+	if raw, ok := out.(*json.RawMessage); ok {
+		*raw = data
+		return nil
+	}
+	if err := json.Unmarshal(data, out); err != nil {
+		return fmt.Errorf("decoding response: %w", err)
+	}
+	return nil
+}

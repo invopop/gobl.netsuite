@@ -1,0 +1,388 @@
+[
+  {
+    "available": {
+      "id": "PURCHASE",
+      "refName": "Purchase Transactions"
+    },
+    "custrecord_4110_electronic": false,
+    "description": "EU intra-community purchases",
+    "ecCode": true,
+    "excludeFromTaxReports": false,
+    "exempt": false,
+    "export": false,
+    "id": "12",
+    "includeChildren": false,
+    "isDefault": false,
+    "isInactive": false,
+    "itemId": "ESSP-ES",
+    "itemType": "TaxItem",
+    "nexusCountry": {
+      "id": "ES",
+      "refName": "ES"
+    },
+    "parent": {
+      "id": "6",
+      "refName": "S-ES (21%)"
+    },
+    "purchaseAccount": {
+      "id": "126",
+      "refName": "126"
+    },
+    "rate": 0.0,
+    "reverseCharge": true,
+    "saleAccount": {
+      "id": "125",
+      "refName": "125"
+    },
+    "service": true,
+    "subsidiary": {},
+    "taxAgency": {
+      "id": "2",
+      "refName": "Tax Agency ES"
+    },
+    "taxType": {
+      "id": "1",
+      "refName": "VAT"
+    }
+  },
+  {
+    "available": {
+      "id": "SALE",
+      "refName": "Sales Transactions"
+    },
+    "custrecord_4110_electronic": false,
+    "description": "EU intra-community sales",
+    "ecCode": true,
+    "excludeFromTaxReports": false,
+    "exempt": false,
+    "export": false,
+    "id": "11",
+    "includeChildren": false,
+    "isDefault": false,
+    "isInactive": false,
+    "itemId": "ESSS-ES",
+    "itemType": "TaxItem",
+    "nexusCountry": {
+      "id": "ES",
+      "refName": "ES"
+    },
+    "purchaseAccount": {
+      "id": "126",
+      "refName": "126"
+    },
+    "rate": 0.0,
+    "reverseCharge": false,
+    "saleAccount": {
+      "id": "125",
+      "refName": "125"
+    },
+    "service": true,
+    "subsidiary": {},
+    "taxAgency": {
+      "id": "2",
+      "refName": "Tax Agency ES"
+    },
+    "taxType": {
+      "id": "1",
+      "refName": "VAT"
+    }
+  },
+  {
+    "available": {
+      "id": "BOTH",
+      "refName": "Both"
+    },
+    "custrecord_4110_electronic": false,
+    "description": "Exempt from VAT",
+    "ecCode": false,
+    "excludeFromTaxReports": false,
+    "exempt": true,
+    "export": false,
+    "id": "10",
+    "includeChildren": false,
+    "isDefault": false,
+    "isInactive": false,
+    "itemId": "EX-ES",
+    "itemType": "TaxItem",
+    "nexusCountry": {
+      "id": "ES",
+      "refName": "ES"
+    },
+    "purchaseAccount": {
+      "id": "126",
+      "refName": "126"
+    },
+    "rate": 0.0,
+    "reverseCharge": false,
+    "saleAccount": {
+      "id": "125",
+      "refName": "125"
+    },
+    "service": false,
+    "subsidiary": {},
+    "taxAgency": {
+      "id": "2",
+      "refName": "Tax Agency ES"
+    },
+    "taxType": {
+      "id": "1",
+      "refName": "VAT"
+    }
+  },
+  {
+    "available": {
+      "id": "BOTH",
+      "refName": "Both"
+    },
+    "custrecord_4110_electronic": false,
+    "description": "Reduced rate",
+    "ecCode": false,
+    "excludeFromTaxReports": false,
+    "exempt": false,
+    "export": false,
+    "id": "7",
+    "includeChildren": false,
+    "isDefault": false,
+    "isInactive": false,
+    "itemId": "R-ES",
+    "itemType": "TaxItem",
+    "nexusCountry": {
+      "id": "ES",
+      "refName": "ES"
+    },
+    "purchaseAccount": {
+      "id": "126",
+      "refName": "126"
+    },
+    "rate": 10.0,
+    "reverseCharge": false,
+    "saleAccount": {
+      "id": "125",
+      "refName": "125"
+    },
+    "service": false,
+    "subsidiary": {},
+    "taxAgency": {
+      "id": "2",
+      "refName": "Tax Agency ES"
+    },
+    "taxType": {
+      "id": "1",
+      "refName": "VAT"
+    }
+  },
+  {
+    "available": {
+      "id": "BOTH",
+      "refName": "Both"
+    },
+    "custrecord_4110_electronic": false,
+    "description": "Super-reduced rate",
+    "ecCode": false,
+    "excludeFromTaxReports": false,
+    "exempt": false,
+    "export": false,
+    "id": "8",
+    "includeChildren": false,
+    "isDefault": false,
+    "isInactive": false,
+    "itemId": "R2-ES",
+    "itemType": "TaxItem",
+    "nexusCountry": {
+      "id": "ES",
+      "refName": "ES"
+    },
+    "purchaseAccount": {
+      "id": "126",
+      "refName": "126"
+    },
+    "rate": 4.0,
+    "reverseCharge": false,
+    "saleAccount": {
+      "id": "125",
+      "refName": "125"
+    },
+    "service": false,
+    "subsidiary": {},
+    "taxAgency": {
+      "id": "2",
+      "refName": "Tax Agency ES"
+    },
+    "taxType": {
+      "id": "1",
+      "refName": "VAT"
+    }
+  },
+  {
+    "available": {
+      "id": "BOTH",
+      "refName": "Both"
+    },
+    "custrecord_4110_electronic": false,
+    "description": "Reverse-charge sales and purchases",
+    "ecCode": false,
+    "excludeFromTaxReports": false,
+    "exempt": false,
+    "export": false,
+    "id": "13",
+    "includeChildren": false,
+    "isDefault": false,
+    "isInactive": false,
+    "itemId": "RC-ES",
+    "itemType": "TaxItem",
+    "nexusCountry": {
+      "id": "ES",
+      "refName": "ES"
+    },
+    "parent": {
+      "id": "6",
+      "refName": "S-ES (21%)"
+    },
+    "purchaseAccount": {
+      "id": "126",
+      "refName": "126"
+    },
+    "rate": 0.0,
+    "reverseCharge": true,
+    "saleAccount": {
+      "id": "125",
+      "refName": "125"
+    },
+    "service": false,
+    "subsidiary": {},
+    "taxAgency": {
+      "id": "2",
+      "refName": "Tax Agency ES"
+    },
+    "taxType": {
+      "id": "1",
+      "refName": "VAT"
+    }
+  },
+  {
+    "available": {
+      "id": "BOTH",
+      "refName": "Both"
+    },
+    "custrecord_4110_electronic": false,
+    "description": "Standard Domestic rate",
+    "ecCode": false,
+    "excludeFromTaxReports": false,
+    "exempt": false,
+    "export": false,
+    "id": "6",
+    "includeChildren": false,
+    "isDefault": false,
+    "isInactive": false,
+    "itemId": "S-ES",
+    "itemType": "TaxItem",
+    "nexusCountry": {
+      "id": "ES",
+      "refName": "ES"
+    },
+    "purchaseAccount": {
+      "id": "126",
+      "refName": "126"
+    },
+    "rate": 21.0,
+    "reverseCharge": false,
+    "saleAccount": {
+      "id": "125",
+      "refName": "125"
+    },
+    "service": false,
+    "subsidiary": {},
+    "taxAgency": {
+      "id": "2",
+      "refName": "Tax Agency ES"
+    },
+    "taxType": {
+      "id": "1",
+      "refName": "VAT"
+    }
+  },
+  {
+    "available": {
+      "id": "BOTH",
+      "refName": "Both"
+    },
+    "custrecord_4110_electronic": false,
+    "description": "Used when NetSuite cannot determine the appropriate tax code for a transaction.",
+    "ecCode": false,
+    "excludeFromTaxReports": false,
+    "exempt": false,
+    "export": false,
+    "id": "5",
+    "includeChildren": true,
+    "isDefault": false,
+    "isInactive": false,
+    "itemId": "UNDEF-ES",
+    "itemType": "TaxItem",
+    "nexusCountry": {
+      "id": "ES",
+      "refName": "ES"
+    },
+    "purchaseAccount": {
+      "id": "126",
+      "refName": "126"
+    },
+    "rate": 0.0,
+    "reverseCharge": false,
+    "saleAccount": {
+      "id": "125",
+      "refName": "125"
+    },
+    "service": false,
+    "subsidiary": {},
+    "taxAgency": {
+      "id": "2",
+      "refName": "Tax Agency ES"
+    },
+    "taxType": {
+      "id": "1",
+      "refName": "VAT"
+    }
+  },
+  {
+    "available": {
+      "id": "BOTH",
+      "refName": "Both"
+    },
+    "custrecord_4110_electronic": false,
+    "description": "Zero rated transaction",
+    "ecCode": false,
+    "excludeFromTaxReports": false,
+    "exempt": false,
+    "export": false,
+    "id": "9",
+    "includeChildren": false,
+    "isDefault": false,
+    "isInactive": false,
+    "itemId": "Z-ES",
+    "itemType": "TaxItem",
+    "nexusCountry": {
+      "id": "ES",
+      "refName": "ES"
+    },
+    "purchaseAccount": {
+      "id": "126",
+      "refName": "126"
+    },
+    "rate": 0.0,
+    "reverseCharge": false,
+    "saleAccount": {
+      "id": "125",
+      "refName": "125"
+    },
+    "service": false,
+    "subsidiary": {},
+    "taxAgency": {
+      "id": "2",
+      "refName": "Tax Agency ES"
+    },
+    "taxType": {
+      "id": "1",
+      "refName": "VAT"
+    }
+  }
+]

@@ -1,0 +1,118 @@
+{
+	"$regime": "ES",
+	"uuid": "0190a63b-6f6c-7d6e-9a2c-3d4e5f60718a",
+	"type": "standard",
+	"code": "5",
+	"issue_date": "2026-09-24",
+	"currency": "EUR",
+	"tax": {
+		"rounding": "currency"
+	},
+	"supplier": {
+		"name": "Invopop SL",
+		"tax_id": {
+			"country": "ES",
+			"code": "B85905495"
+		},
+		"addresses": [
+			{
+				"street": "Calle Pradillo, 42",
+				"locality": "Madrid",
+				"code": "28002",
+				"country": "ES"
+			}
+		]
+	},
+	"customer": {
+		"name": "SAP SE",
+		"tax_id": {
+			"country": "DE",
+			"code": "143454214"
+		},
+		"addresses": [
+			{
+				"street": "Dietmar-Hopp-Allee 16",
+				"locality": "Walldorf",
+				"code": "69190",
+				"country": "DE"
+			}
+		],
+		"emails": [
+			{
+				"addr": "invoices@sap.example"
+			}
+		]
+	},
+	"lines": [
+		{
+			"i": 1,
+			"quantity": "40",
+			"item": {
+				"name": "SVC-001 Consulting",
+				"price": "125.00"
+			},
+			"sum": "5000.00",
+			"taxes": [
+				{
+					"cat": "VAT",
+					"key": "reverse-charge"
+				}
+			],
+			"total": "5000.00"
+		},
+		{
+			"i": 2,
+			"quantity": "1",
+			"item": {
+				"name": "SVC-002 Support",
+				"price": "800.00"
+			},
+			"sum": "800.00",
+			"taxes": [
+				{
+					"cat": "VAT",
+					"key": "reverse-charge"
+				}
+			],
+			"total": "800.00"
+		}
+	],
+	"payment": {
+		"terms": {
+			"due_dates": [
+				{
+					"date": "2026-09-24",
+					"amount": "5800.00",
+					"percent": "100%"
+				}
+			]
+		}
+	},
+	"totals": {
+		"sum": "5800.00",
+		"total": "5800.00",
+		"taxes": {
+			"categories": [
+				{
+					"code": "VAT",
+					"rates": [
+						{
+							"key": "reverse-charge",
+							"base": "5800.00",
+							"amount": "0.00"
+						}
+					],
+					"amount": "0.00"
+				}
+			],
+			"sum": "0.00"
+		},
+		"tax": "0.00",
+		"total_with_tax": "5800.00",
+		"payable": "5800.00"
+	},
+	"meta": {
+		"netsuite-id": "5",
+		"netsuite-type": "invoice"
+	}
+}
